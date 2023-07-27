@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.17;
+pragma solidity 0.8.17;
 
 import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
@@ -15,7 +15,7 @@ contract SanctionToken is ERC20, Ownable {
     }
 
     function burn(address account, uint256 amount) external {
-        require(msg.sender == owner() || msg.sender == account, "Can't mint for others.");
+        require(msg.sender == owner() || msg.sender == account, "Can't burn for others.");
         _burn(account, amount);
     }
 
