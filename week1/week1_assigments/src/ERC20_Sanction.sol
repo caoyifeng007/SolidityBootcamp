@@ -5,7 +5,7 @@ import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 
 contract SanctionToken is ERC20, Ownable {
-    mapping(address => bool) private _blackList;
+    mapping(address => bool) public blackList;
 
     constructor() ERC20("SanctionToken", "ST") {}
 
@@ -20,14 +20,14 @@ contract SanctionToken is ERC20, Ownable {
     }
 
     function updateBlackList(address _addr, bool _flag) external onlyOwner {
-        require(_addr != address(0), "Invalid address");
-        require(_blackList[_addr] != _flag, "Already updated.");
-        _blackList[_addr] = _flag;
+        require(_addr != address(0), "Invalid address.");
+        require(blackList[_addr] != _flag, "Already updated.");
+        blackList[_addr] = _flag;
     }
 
     function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
-        require(!_blackList[from], "Banned address");
-        require(!_blackList[to], "Banned address");
+        require(!blackList[from], "Banned address.");
+        require(!blackList[to], "Banned address.");
 
         super._beforeTokenTransfer(from, to, amount);
     }
