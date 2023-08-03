@@ -7,3 +7,6 @@
 [submodule "week1/week1_assigments/lib/erc1363-payable-token"]
 	path = week1/week1_assigments/lib/erc1363-payable-token
 	url = https://github.com/vittominacori/erc1363-payable-token
+[submodule "week1/week1_assigments/lib/solidity-math-utils"]
+	path = week1/week1_assigments/lib/solidity-math-utils
+	url = https://github.com/barakman/solidity-math-utils
