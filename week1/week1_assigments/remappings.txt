@@ -3,3 +3,5 @@ forge-std/=lib/forge-std/src/
 lib/forge-std:ds-test/=lib/forge-std/lib/ds-test/src/
 
 @openzeppelin/=lib/openzeppelin-contracts/
+erc1363-payable-token/=lib/erc1363-payable-token/
+solidity-math-utils/=lib/solidity-math-utils/project/contracts/
