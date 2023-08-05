@@ -5,10 +5,9 @@ import "erc1363-payable-token/contracts/token/ERC1363/ERC1363.sol";
 import "erc1363-payable-token/contracts/token/ERC1363/IERC1363Receiver.sol";
 import "@openzeppelin/contracts/security/PullPayment.sol";
 import "./LinearBondingCurve.sol";
+import "./ValidGasPrice.sol";
 
-import "forge-std/Test.sol";
-
-contract BondingCurveToken is Test, ERC1363, LinearBondingCurve, PullPayment, IERC1363Receiver {
+contract BondingCurveToken is ERC1363, LinearBondingCurve, PullPayment, ValidGasPrice, IERC1363Receiver {
     uint256 internal reserveBalance;
 
     /**
@@ -27,11 +26,10 @@ contract BondingCurveToken is Test, ERC1363, LinearBondingCurve, PullPayment, IE
         _buy(msg.sender, msg.value);
     }
 
-    function _buy(address buyer, uint256 amount) internal {
+    function _buy(address buyer, uint256 amount) internal validGasPrice {
         require(amount > 0, "Deposit must be non-zero.");
 
         uint256 tokenReward = calculatePurchaseReturn(totalSupply(), reserveBalance, 0, amount);
-        // console2.log(tokenReward);
 
         _mint(buyer, tokenReward);
         reserveBalance += amount;
@@ -46,7 +44,7 @@ contract BondingCurveToken is Test, ERC1363, LinearBondingCurve, PullPayment, IE
         _buy(buyer, msg.value);
     }
 
-    function _sell(address seller, uint256 amount, address payee) internal {
+    function _sell(address seller, uint256 amount, address payee) internal validGasPrice {
         require(amount > 0, "Amount must be non-zero.");
 
         uint256 refundAmount = calculateSaleReturn(totalSupply(), reserveBalance, 0, amount);
