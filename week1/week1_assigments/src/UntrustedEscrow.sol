@@ -5,6 +5,8 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 
 contract UntrustedEscrow {
+    using SafeERC20 for IERC20;
+
     struct Transaction {
         IERC20 tokenAddr;
         address buyer;
@@ -35,7 +37,7 @@ contract UntrustedEscrow {
             amount: amount,
             time: block.timestamp
         });
-        SafeERC20.safeTransfer(tokenAddr, address(this), amount);
+        tokenAddr.safeTransfer(address(this), amount);
 
         emit Deposited(address(tokenAddr), msg.sender, seller, amount);
     }
@@ -53,7 +55,7 @@ contract UntrustedEscrow {
 
         delete buyerSellerToTx[buyer][msg.sender];
 
-        SafeERC20.safeTransfer(trx.tokenAddr, trx.seller, trx.amount);
+        trx.tokenAddr.safeTransfer(trx.seller, trx.amount);
 
         emit Withdrawn(address(trx.tokenAddr), trx.buyer, trx.seller, trx.amount);
     }

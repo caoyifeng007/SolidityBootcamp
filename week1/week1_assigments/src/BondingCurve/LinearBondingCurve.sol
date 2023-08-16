@@ -3,7 +3,7 @@ pragma solidity 0.8.20;
 
 import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "erc1363-payable-token/contracts/token/ERC1363/ERC1363.sol";
-import "../IBondingCurve.sol";
+import "./IBondingCurve.sol";
 import "solidity-math-utils/AnalyticMath.sol";
 
 /**
