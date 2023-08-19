@@ -11,8 +11,8 @@
 	path = week1/week1_assigments/lib/solidity-math-utils
 	url = https://github.com/barakman/solidity-math-utils
 [submodule "week1/week2_assigments/lib/forge-std"]
-	path = week1/week2_assigments/lib/forge-std
+	path = week2/week2_assigments/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
 [submodule "week1/week2_assigments/lib/openzeppelin-contracts"]
-	path = week1/week2_assigments/lib/openzeppelin-contracts
+	path = week2/week2_assigments/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
