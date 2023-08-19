@@ -11,6 +11,8 @@ contract Overmint2 is ERC721 {
     function mint() external {
         require(balanceOf(msg.sender) <= 3, "max 3 NFTs");
         totalSupply++;
+
+        // code execution in attacker contract constructor will be regards as EOA
         _mint(msg.sender, totalSupply);
     }
 
