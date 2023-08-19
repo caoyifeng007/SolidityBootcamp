@@ -4,20 +4,20 @@ pragma solidity ^0.8.17;
 import "./MyERC721Enumerable.sol";
 
 contract PrimeCounter {
-    MyEnumerableNFT private erc721;
+    MyEnumerableNFT private immutable _erc721;
 
-    constructor(address _erc721) {
-        require(_erc721 != address(0), "Invalid NFT address");
-        erc721 = MyEnumerableNFT(_erc721);
+    constructor(address erc721) {
+        require(erc721 != address(0), "Invalid NFT address");
+        _erc721 = MyEnumerableNFT(erc721);
     }
 
     function countPrimeTokenNum(
-        address _owner
+        address owner
     ) external view returns (uint256 num) {
-        uint256 tokenCounts = erc721.balanceOf(_owner);
+        uint256 tokenCounts = _erc721.balanceOf(owner);
 
         for (uint256 i = 0; i < tokenCounts; ) {
-            uint256 tokenId = erc721.tokenOfOwnerByIndex(_owner, i);
+            uint256 tokenId = _erc721.tokenOfOwnerByIndex(owner, i);
 
             if (_isPrime(tokenId)) {
                 unchecked {
