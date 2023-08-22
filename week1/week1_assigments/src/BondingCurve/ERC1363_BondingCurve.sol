@@ -7,7 +7,13 @@ import "@openzeppelin/contracts/security/PullPayment.sol";
 import "./LinearBondingCurve.sol";
 import "./ValidGasPrice.sol";
 
-contract BondingCurveToken is ERC1363, LinearBondingCurve, PullPayment, ValidGasPrice, IERC1363Receiver {
+contract BondingCurveToken is
+    ERC1363,
+    LinearBondingCurve,
+    PullPayment,
+    ValidGasPrice,
+    IERC1363Receiver
+{
     uint256 internal reserveBalance;
 
     /**
@@ -29,7 +35,12 @@ contract BondingCurveToken is ERC1363, LinearBondingCurve, PullPayment, ValidGas
     function _buy(address buyer, uint256 amount) internal validGasPrice {
         require(amount > 0, "Deposit must be non-zero.");
 
-        uint256 tokenReward = calculatePurchaseReturn(totalSupply(), reserveBalance, 0, amount);
+        uint256 tokenReward = calculatePurchaseReturn(
+            totalSupply(),
+            reserveBalance,
+            0,
+            amount
+        );
 
         _mint(buyer, tokenReward);
         reserveBalance += amount;
@@ -44,10 +55,19 @@ contract BondingCurveToken is ERC1363, LinearBondingCurve, PullPayment, ValidGas
         _buy(buyer, msg.value);
     }
 
-    function _sell(address seller, uint256 amount, address payee) internal validGasPrice {
+    function _sell(
+        address seller,
+        uint256 amount,
+        address payee
+    ) internal validGasPrice {
         require(amount > 0, "Amount must be non-zero.");
 
-        uint256 refundAmount = calculateSaleReturn(totalSupply(), reserveBalance, 0, amount);
+        uint256 refundAmount = calculateSaleReturn(
+            totalSupply(),
+            reserveBalance,
+            0,
+            amount
+        );
         _burn(seller, amount);
         reserveBalance -= refundAmount;
 
@@ -73,10 +93,12 @@ contract BondingCurveToken is ERC1363, LinearBondingCurve, PullPayment, ValidGas
      *    balanceOf(sender) = balanceOf(sender) - amount
      *    balanceOf(address(this)) = balanceOf(address(this)) + amount
      */
-    function onTransferReceived(address spender, address sender, uint256 amount, bytes calldata data)
-        external
-        returns (bytes4)
-    {
+    function onTransferReceived(
+        address spender,
+        address sender,
+        uint256 amount,
+        bytes calldata data
+    ) external returns (bytes4) {
         _sell(address(this), amount, spender);
 
         return IERC1363Receiver.onTransferReceived.selector;
@@ -88,7 +110,10 @@ contract BondingCurveToken is ERC1363, LinearBondingCurve, PullPayment, ValidGas
      */
 
     function withdrawRefund() external {
-        require(payments(msg.sender) > 0, "You don't have any balance to withdraw.");
+        require(
+            payments(msg.sender) > 0,
+            "You don't have any balance to withdraw."
+        );
 
         withdrawPayments(payable(msg.sender));
     }
