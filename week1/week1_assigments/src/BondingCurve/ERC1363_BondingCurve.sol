@@ -1,27 +1,27 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "erc1363-payable-token/contracts/token/ERC1363/ERC1363.sol";
-import "erc1363-payable-token/contracts/token/ERC1363/IERC1363Receiver.sol";
-import "@openzeppelin/contracts/security/PullPayment.sol";
-import "./LinearBondingCurve.sol";
-import "./ValidGasPrice.sol";
+import {ERC1363, ERC20} from "erc1363-payable-token/contracts/token/ERC1363/ERC1363.sol";
+import {IERC1363Receiver} from "erc1363-payable-token/contracts/token/ERC1363/IERC1363Receiver.sol";
+import {PullPayment} from "@openzeppelin/contracts/security/PullPayment.sol";
+import {LinearBondingCurve} from "./LinearBondingCurve.sol";
+import {ValidGasPrice} from "./ValidGasPrice.sol";
 
-contract BondingCurveToken is
+contract ERC1363BondingCurveToken is
     ERC1363,
     LinearBondingCurve,
     PullPayment,
     ValidGasPrice,
     IERC1363Receiver
 {
-    uint256 internal reserveBalance;
+    uint256 internal _reserveBalance;
 
     /**
      * Initialise bonding curve at point where supply is 1 token, reserve balance is 0.5 ETH
      * So the curve we used will be : y = x
      */
     constructor() ERC20("BondingCurveToken", "BCT") {
-        reserveBalance = 0.5 ether;
+        _reserveBalance = 0.5 ether;
         _mint(msg.sender, 1 * 10 ** decimals());
     }
 
@@ -37,13 +37,13 @@ contract BondingCurveToken is
 
         uint256 tokenReward = calculatePurchaseReturn(
             totalSupply(),
-            reserveBalance,
+            _reserveBalance,
             0,
             amount
         );
 
         _mint(buyer, tokenReward);
-        reserveBalance += amount;
+        _reserveBalance += amount;
     }
 
     /**
@@ -56,7 +56,7 @@ contract BondingCurveToken is
     }
 
     function _sell(
-        address seller,
+        address tokenOwner,
         uint256 amount,
         address payee
     ) internal validGasPrice {
@@ -64,12 +64,12 @@ contract BondingCurveToken is
 
         uint256 refundAmount = calculateSaleReturn(
             totalSupply(),
-            reserveBalance,
+            _reserveBalance,
             0,
             amount
         );
-        _burn(seller, amount);
-        reserveBalance -= refundAmount;
+        _burn(tokenOwner, amount);
+        _reserveBalance -= refundAmount;
 
         _asyncTransfer(payee, refundAmount);
     }
@@ -78,7 +78,22 @@ contract BondingCurveToken is
      * Users can sell their own tokens by calling this function directly.
      */
     function sell(uint256 amount) external {
+        require(balanceOf(msg.sender) >= amount, "Not enough tokens to sell.");
+
         _sell(msg.sender, amount, msg.sender);
+    }
+
+    /**
+     * Users can sell their allwance tokens by calling this function.
+     * User can also specify who can receive the benefit
+     */
+    function sell(address tokenOwner, uint256 amount, address payee) external {
+        require(
+            allowance(tokenOwner, msg.sender) >= amount,
+            "Not enough tokens to sell."
+        );
+
+        _sell(tokenOwner, amount, payee);
     }
 
     /**
@@ -90,16 +105,16 @@ contract BondingCurveToken is
      *
      * This function is called after transfer()
      * So when onTransferReceived() is executed:
-     *    balanceOf(sender) = balanceOf(sender) - amount
+     *    balanceOf(from) = balanceOf(from) - amount
      *    balanceOf(address(this)) = balanceOf(address(this)) + amount
      */
     function onTransferReceived(
-        address spender,
-        address sender,
-        uint256 amount,
-        bytes calldata data
+        address operator,
+        address from,
+        uint256 value,
+        bytes calldata
     ) external returns (bytes4) {
-        _sell(address(this), amount, spender);
+        _sell(address(this), value, operator);
 
         return IERC1363Receiver.onTransferReceived.selector;
     }

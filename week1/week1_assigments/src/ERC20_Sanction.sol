@@ -1,21 +1,28 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/token/ERC20/ERC20.sol";
-import "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC20} from "@openzeppelin/contracts/token/ERC20/ERC20.sol";
 
-contract SanctionToken is ERC20, Ownable {
+import {Ownable2Step} from "@openzeppelin/contracts/access/Ownable2Step.sol";
+
+contract SanctionToken is ERC20, Ownable2Step {
     mapping(address => bool) public blackList;
 
     constructor() ERC20("SanctionToken", "ST") {}
 
     function mint(address account, uint256 amount) external {
-        require(msg.sender == owner() || msg.sender == account, "Can't mint for others.");
+        require(
+            msg.sender == owner() || msg.sender == account,
+            "Can't mint for others."
+        );
         _mint(account, amount);
     }
 
     function burn(address account, uint256 amount) external {
-        require(msg.sender == owner() || msg.sender == account, "Can't burn for others.");
+        require(
+            msg.sender == owner() || msg.sender == account,
+            "Can't burn for others."
+        );
         _burn(account, amount);
     }
 
@@ -25,7 +32,11 @@ contract SanctionToken is ERC20, Ownable {
         blackList[_addr] = _flag;
     }
 
-    function _beforeTokenTransfer(address from, address to, uint256 amount) internal override {
+    function _beforeTokenTransfer(
+        address from,
+        address to,
+        uint256 amount
+    ) internal override {
         require(!blackList[from], "Banned address.");
         require(!blackList[to], "Banned address.");
 
