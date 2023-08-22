@@ -16,3 +16,6 @@
 [submodule "week1/week2_assigments/lib/openzeppelin-contracts"]
 	path = week2/week2_assigments/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "week1/week1_assigments/lib/prb-math"]
+	path = week1/week1_assigments/lib/prb-math
+	url = https://github.com/PaulRBerg/prb-math

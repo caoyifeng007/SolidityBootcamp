@@ -1,10 +1,9 @@
 // SPDX-License-Identifier: MIT
 pragma solidity 0.8.20;
 
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "erc1363-payable-token/contracts/token/ERC1363/ERC1363.sol";
-import "./IBondingCurve.sol";
-import "solidity-math-utils/AnalyticMath.sol";
+
+import {UD60x18, ud, unwrap, powu, sqrt, add, sub} from "prb-math/UD60x18.sol";
 
 /**
  * The purchase and sell formula equations come from Bancor Formula
@@ -12,7 +11,7 @@ import "solidity-math-utils/AnalyticMath.sol";
  *
  * Set reserve ratio (i.e. F in Bancor Formula) to 1/2
  */
-contract LinearBondingCurve is IBondingCurve, AnalyticMath {
+contract LinearBondingCurve {
     /**
      * Purchase equation: T = S0 * ((1 + E / R0) ^ F - 1)
      * This equation calculate how many tokens we get if we spend E ETH
@@ -21,13 +20,21 @@ contract LinearBondingCurve is IBondingCurve, AnalyticMath {
      *    Return = _supply * ((1 + _depositAmout / _reserveBalance) ^ 1/2 - 1 )
      */
 
-    function calculatePurchaseReturn(uint256 _supply, uint256 _reserveBalance, uint32, uint256 _depositAmount)
-        public
-        view
-        returns (uint256)
-    {
-        (uint256 n, uint256 d) = pow((_reserveBalance + _depositAmount), _reserveBalance, 1, 2);
-        return IntegralMath.mulDivF(_supply, n, d) - _supply;
+    function calculatePurchaseReturn(
+        uint256 _supply,
+        uint256 _reserveBalance,
+        uint32,
+        uint256 _depositAmount
+    ) public pure returns (uint256) {
+        UD60x18 s = ud(_supply);
+        UD60x18 r = ud(_reserveBalance);
+        UD60x18 d = ud(_depositAmount);
+
+        UD60x18 x1 = ud(1e18).add(d.div(r));
+        UD60x18 x2 = (x1.sqrt()).sub(ud(1e18));
+        UD60x18 ret = s.mul(x2);
+
+        return unwrap(ret);
     }
 
     /**
@@ -41,12 +48,20 @@ contract LinearBondingCurve is IBondingCurve, AnalyticMath {
      * In code:
      *    Return = _reserveBalance * (1 - (1 - _sellAmount / _supply) ^ 2 )
      */
-    function calculateSaleReturn(uint256 _supply, uint256 _reserveBalance, uint32, uint256 _sellAmount)
-        public
-        view
-        returns (uint256)
-    {
-        (uint256 n, uint256 d) = pow(_supply, (_supply - _sellAmount), 2, 1);
-        return IntegralMath.mulDivF(_reserveBalance, n - d, n);
+    function calculateSaleReturn(
+        uint256 _supply,
+        uint256 _reserveBalance,
+        uint32,
+        uint256 _sellAmount
+    ) public pure returns (uint256) {
+        UD60x18 su = ud(_supply);
+        UD60x18 r = ud(_reserveBalance);
+        UD60x18 sm = ud(_sellAmount);
+
+        UD60x18 x1 = ud(1e18).sub(sm.div(su));
+        UD60x18 x2 = ud(1e18).sub(x1.powu(2));
+        UD60x18 ret = r.mul(x2);
+
+        return unwrap(ret);
     }
 }
