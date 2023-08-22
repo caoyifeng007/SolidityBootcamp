@@ -19,3 +19,6 @@
 [submodule "week1/week1_assigments/lib/prb-math"]
 	path = week1/week1_assigments/lib/prb-math
 	url = https://github.com/PaulRBerg/prb-math
+[submodule "common/vertigo-rs"]
+	path = common/vertigo-rs
+	url = https://github.com/RareSkills/vertigo-rs.git
