@@ -31,3 +31,6 @@
 [submodule "common/ethernaut-foundry-solutions/lib/ethernaut"]
 	path = common/ethernaut-foundry-solutions/lib/ethernaut
 	url = https://github.com/OpenZeppelin/ethernaut
+[submodule "common/ethernaut-foundry-solutions/lib/openzeppelin-contracts"]
+	path = common/ethernaut-foundry-solutions/lib/openzeppelin-contracts
+	url = https://github.com/OpenZeppelin/openzeppelin-contracts
