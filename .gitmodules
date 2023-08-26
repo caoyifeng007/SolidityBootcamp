@@ -25,3 +25,6 @@
 [submodule "common/building-secure-contracts"]
 	path = common/building-secure-contracts
 	url = https://github.com/caoyifeng007/building-secure-contracts.git
+[submodule "common/capture-the-ether-foundry"]
+	path = common/capture-the-ether-foundry
+	url = https://github.com/caoyifeng007/capture-the-ether-foundry.git
