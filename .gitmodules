@@ -28,3 +28,6 @@
 [submodule "common/capture-the-ether-foundry"]
 	path = common/capture-the-ether-foundry
 	url = https://github.com/caoyifeng007/capture-the-ether-foundry.git
+[submodule "common/ethernaut-foundry-solutions/lib/ethernaut"]
+	path = common/ethernaut-foundry-solutions/lib/ethernaut
+	url = https://github.com/OpenZeppelin/ethernaut
