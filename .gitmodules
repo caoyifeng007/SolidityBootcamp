@@ -22,3 +22,6 @@
 [submodule "common/vertigo-rs"]
 	path = common/vertigo-rs
 	url = https://github.com/RareSkills/vertigo-rs.git
+[submodule "common/building-secure-contracts"]
+	path = common/building-secure-contracts
+	url = https://github.com/caoyifeng007/building-secure-contracts.git
