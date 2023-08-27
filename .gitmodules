@@ -34,3 +34,6 @@
 [submodule "common/ethernaut-foundry-solutions/lib/openzeppelin-contracts"]
 	path = common/ethernaut-foundry-solutions/lib/openzeppelin-contracts
 	url = https://github.com/OpenZeppelin/openzeppelin-contracts
+[submodule "common/learn-evm-attacks"]
+	path = common/learn-evm-attacks
+	url = https://github.com/caoyifeng007/learn-evm-attacks.git
