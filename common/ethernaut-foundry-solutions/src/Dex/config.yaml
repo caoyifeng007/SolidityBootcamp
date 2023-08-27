@@ -1,0 +1,17 @@
+# filterBlacklist: true
+# filterFunctions: ["Dex.setTokens(address,address)", "Dex.addLiquidity(address,uint)"]
+
+
+# testMode: assertion
+
+# corpusDir: corpus
+
+
+testMode: assertion
+seqLen: 100
+testLimit: 500000
+coverage: true
+corpusDir: './corpus'
+deployer: "0x10000"
+sender: ["0x30000"]
+multi-abi: true
