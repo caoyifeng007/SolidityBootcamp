@@ -2,6 +2,11 @@
 // pragma solidity ^0.6.0;
 pragma solidity ^0.8.13;
 
+/**
+ * Original Token is compiled under 0.6.0
+ * I put all the code in `unchecked` to simulate 0.6.0
+ * So that this puzzle can be run in foundry
+ */
 contract Token {
     mapping(address => uint) balances;
     uint public totalSupply;
