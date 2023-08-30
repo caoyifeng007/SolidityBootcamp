@@ -37,3 +37,6 @@
 [submodule "common/learn-evm-attacks"]
 	path = common/learn-evm-attacks
 	url = https://github.com/caoyifeng007/learn-evm-attacks.git
+[submodule "common/damn-vulnerable-defi"]
+	path = common/damn-vulnerable-defi
+	url = https://github.com/caoyifeng007/damn-vulnerable-defi.git
