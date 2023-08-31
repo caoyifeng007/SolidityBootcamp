@@ -44,7 +44,11 @@ describe(NAME, function () {
     });
 
     // you may only use the attacker wallet, and no other wallet
-    it("conduct your attack here", async function () {});
+        it("conduct your attack here", async function () {
+            const attkerContract = await (await ethers.getContractFactory("AssignVotesAttacker"))
+                .connect(attackerWallet)
+                .deploy(victimContract.address);
+        });
 
     after(async function () {
       expect(
