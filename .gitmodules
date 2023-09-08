@@ -43,3 +43,6 @@
 [submodule "common/gas-puzzles"]
 	path = common/gas-puzzles
 	url = https://github.com/caoyifeng007/gas-puzzles.git
+[submodule "common/evm-puzzles"]
+	path = common/evm-puzzles
+	url = https://github.com/caoyifeng007/evm-puzzles.git
