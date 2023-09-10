@@ -46,3 +46,6 @@
 [submodule "common/evm-puzzles"]
 	path = common/evm-puzzles
 	url = https://github.com/caoyifeng007/evm-puzzles.git
+[submodule "common/more-evm-puzzles"]
+	path = common/more-evm-puzzles
+	url = https://github.com/caoyifeng007/more-evm-puzzles.git
