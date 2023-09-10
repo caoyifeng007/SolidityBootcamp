@@ -3,25 +3,26 @@ pragma solidity ^0.8.13;
 
 import {Test, console} from "forge-std/Test.sol";
 
-// import {MagicNum} from "ethernaut/levels/MagicNum.sol";
-import {YulDeployer} from "../test/utils/yul/YulDeployer.t.sol";
-
 interface Attacker {
     function whatIsTheMeaningOfLife() external returns (bytes32);
 }
 
 contract MagicNumberTest is Test {
-    YulDeployer yulDeployer = new YulDeployer();
-
     bytes32 magic =
         0x000000000000000000000000000000000000000000000000000000000000002a;
 
     address attacker;
 
     function setUp() public {
-        attacker = yulDeployer.deployContract(
-            "src/MagicNumber/MagicNumberAttacker.yul"
+        bytes memory bytecode = abi.encodePacked(
+            vm.getCode("MagicNumberAttacker.yul:Simple")
         );
+        address contractAddr;
+        assembly {
+            contractAddr := create(0, add(bytecode, 0x20), mload(bytecode))
+        }
+
+        attacker = contractAddr;
     }
 
     function testAttack() public {

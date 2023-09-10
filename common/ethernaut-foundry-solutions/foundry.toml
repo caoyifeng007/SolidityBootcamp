@@ -3,4 +3,9 @@ src = "src"
 out = "out"
 libs = ["lib"]
 
+# http://localhost:3000/cheatcodes/get-code.html?highlight=getcode#description
+# deploy yul contract needs vm.getCode cheatcode
+# vm.getCode requires read permission for the output directory
+fs_permissions = [{ access = "read", path = "./out" }]
+
 # See more config options https://github.com/foundry-rs/foundry/tree/master/config
