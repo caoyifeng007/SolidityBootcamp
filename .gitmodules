@@ -52,3 +52,6 @@
 [submodule "common/huff-puzzles"]
 	path = common/huff-puzzles
 	url = https://github.com/caoyifeng007/huff-puzzles.git
+[submodule "week13-15/week13-15_assigments/lib/forge-std"]
+	path = week13-15/week13-15_assigments/lib/forge-std
+	url = https://github.com/foundry-rs/forge-std
