@@ -55,3 +55,6 @@
 [submodule "week13-15/week13-15_assigments/lib/forge-std"]
 	path = week13-15/week13-15_assigments/lib/forge-std
 	url = https://github.com/foundry-rs/forge-std
+[submodule "week13-15/week13-15_assigments/lib/solmate"]
+	path = week13-15/week13-15_assigments/lib/solmate
+	url = https://github.com/transmissions11/solmate
