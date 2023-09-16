@@ -75,34 +75,28 @@ object "ERC1155Token" {
                 }
                 v := calldataload(pos)
             }
+
             function decodeAsDynamicTypePtr(offset) -> v {
                 // return the pointer point to where the dataLen begin
                 v := add(decodeAsUint(offset), 0x04)
             }
             function doSafeTransferAcceptanceCheck(operator, from, to, tokenId, amount, dataPtr) -> v {
-                // f23a6e61 -> "onERC1155Received(address,address,uint256,uint256,bytes)"
                 let oldFmptr := getFmptr()
-                let dataLen := calldataload(dataPtr)
 
+                // f23a6e61 -> "onERC1155Received(address,address,uint256,uint256,bytes)"
                 mstore(oldFmptr, 0xf23a6e61)
                 mstore(add(oldFmptr, 0x20), operator)
                 mstore(add(oldFmptr, 0x40), from)
                 mstore(add(oldFmptr, 0x60), tokenId)
-                // mstore(add(oldFmptr, 0x60), dataLen)
                 mstore(add(oldFmptr, 0x80), amount)
 
+                let dataLen := getDynamicTypeLen(dataPtr)
+                let actualDataPtr := getDynamicTypeActualDataPtr(dataPtr)
                 mstore(add(oldFmptr, 0xa0), 0xa0)
                 mstore(add(oldFmptr, 0xc0), dataLen)
-                // skip the dataLen, copy the actual data
-                calldatacopy(add(oldFmptr, 0xe0), add(dataPtr, 0x20), dataLen)
+                calldatacopy(add(oldFmptr, 0xe0), actualDataPtr, dataLen)
 
-                // mstore(add(oldFmptr, 0xc0), 11)
-                // mstore(add(oldFmptr, 0xe0), 0x74657374696e6720313233000000000000000000000000000000000000000000)
-
-                // there is an 32-bytes long memory containing dataLen in this calldatacopy
-                // don't forget to add this 0x20 in the call
                 v := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xe4, dataLen), 0, 0)
-                // v := call(gas(), to, 0, add(oldFmptr, 0x1c), 0xe4 , 0, 0)
             }
             function returnUint(v) {
                 mstore(0, v)
@@ -132,6 +126,15 @@ object "ERC1155Token" {
             }
             function updateFmptr(increase) {
                 mstore(0x40, add(getFmptr(), increase))
+            }
+            function getDynamicTypeLen(dyPtr) -> v {
+                // note that after `decodeAsDynamicTypePtr`, dyPtr already point to the DataLen
+                v := calldataload(dyPtr)
+            }
+            function getDynamicTypeActualDataPtr(dyPtr) -> v {
+                // note that after `decodeAsDynamicTypePtr`, dyPtr already point to the DataLen
+                // return the pointer point to where the data begin
+                v := add(dyPtr, 0x20)
             }
             function isContract(account) -> r {
                 r := gt(extcodesize(account), 0)
