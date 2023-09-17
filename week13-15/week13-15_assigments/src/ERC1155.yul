@@ -44,7 +44,9 @@ object "ERC1155Token" {
             case 0xa22cb465 /* "setApprovalForAll(address,bool)" */ {
                 setApprovalForAll(decodeAsAddress(0), decodeAsUint(1))
             }
-            case 0x01ffc9a7 /* "supportsInterface(bytes4)" */ {}
+            case 0x01ffc9a7 /* "supportsInterface(bytes4)" */ {
+                returnUint(supportsInterface(decodeAsUint(0)))
+            }
             case 0x0e89341c /* "uri(uint256)" */ {}
             default /* "fallback()" */ {}
             
@@ -219,6 +221,16 @@ object "ERC1155Token" {
                 }
 
                 return(oldFmptr, add(oldFmptr, offset))
+            }
+            function supportsInterface(interfaceId) -> b {
+                interfaceId := shr(0xe0, interfaceId)
+
+                // IERC165 -> 0x01ffc9a7
+                b := eq(interfaceId, 0x01ffc9a7)
+                // IERC1155MetadataURI -> 0x0e89341c
+                b := or(eq(interfaceId, 0x0e89341c), b)
+                // IERC1155 -> 0xd9b67a26
+                b := or(eq(interfaceId, 0xd9b67a26), b)
             }
             function emitTransferSingle(operator, from, to, tokenId, amount) {
                 // "TransferSingle(address,address,address,uint256,uint256)" 

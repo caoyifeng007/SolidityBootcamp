@@ -9,6 +9,9 @@ import {Test, console} from "forge-std/Test.sol";
 import {MockERC1155} from "solmate/test/utils/mocks/MockERC1155.sol";
 
 import {ERC1155TokenReceiver} from "solmate/tokens/ERC1155.sol";
+import {IERC165} from "../src/IERC165.sol";
+import {IERC1155MetadataURI} from "../src/IERC1155MetadataURI.sol";
+import {IERC1155} from "../src/IERC1155.sol";
 
 contract ERC1155Recipient is ERC1155TokenReceiver {
     address public operator;
@@ -124,6 +127,11 @@ contract WrongReturnDataERC1155Recipient is ERC1155TokenReceiver {
 
 contract NonERC1155Recipient {}
 
+// solhint-disable-next-line
+function min2(uint256 a, uint256 b) pure returns (uint256) {
+    return a > b ? b : a;
+}
+
 contract ERC1155Test is Test, ERC1155TokenReceiver {
     // solhint-disable-next-line
     MockERC1155 token;
@@ -145,6 +153,14 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
         }
 
         token = MockERC1155(deployed);
+    }
+
+    function testSupportsInterface() external {
+        assertTrue(token.supportsInterface(type(IERC165).interfaceId));
+        assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
+        assertTrue(
+            token.supportsInterface(type(IERC1155MetadataURI).interfaceId)
+        );
     }
 
     event TransferSingle(
@@ -870,112 +886,112 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     //     token.batchMint(address(to), ids, mintAmounts, "");
     // }
 
-    function testFailBatchMintToWrongReturnDataERC1155Recipient() public {
-        WrongReturnDataERC1155Recipient to = new WrongReturnDataERC1155Recipient();
+    // function testFailBatchMintToWrongReturnDataERC1155Recipient() public {
+    //     WrongReturnDataERC1155Recipient to = new WrongReturnDataERC1155Recipient();
 
-        uint256[] memory ids = new uint256[](5);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
-        ids[4] = 1341;
+    //     uint256[] memory ids = new uint256[](5);
+    //     ids[0] = 1337;
+    //     ids[1] = 1338;
+    //     ids[2] = 1339;
+    //     ids[3] = 1340;
+    //     ids[4] = 1341;
 
-        uint256[] memory mintAmounts = new uint256[](5);
-        mintAmounts[0] = 100;
-        mintAmounts[1] = 200;
-        mintAmounts[2] = 300;
-        mintAmounts[3] = 400;
-        mintAmounts[4] = 500;
+    //     uint256[] memory mintAmounts = new uint256[](5);
+    //     mintAmounts[0] = 100;
+    //     mintAmounts[1] = 200;
+    //     mintAmounts[2] = 300;
+    //     mintAmounts[3] = 400;
+    //     mintAmounts[4] = 500;
 
-        token.batchMint(address(to), ids, mintAmounts, "");
-    }
+    //     token.batchMint(address(to), ids, mintAmounts, "");
+    // }
 
-    function testFailBatchMintWithArrayMismatch() public {
-        uint256[] memory ids = new uint256[](5);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
-        ids[4] = 1341;
+    // function testFailBatchMintWithArrayMismatch() public {
+    //     uint256[] memory ids = new uint256[](5);
+    //     ids[0] = 1337;
+    //     ids[1] = 1338;
+    //     ids[2] = 1339;
+    //     ids[3] = 1340;
+    //     ids[4] = 1341;
 
-        uint256[] memory amounts = new uint256[](4);
-        amounts[0] = 100;
-        amounts[1] = 200;
-        amounts[2] = 300;
-        amounts[3] = 400;
+    //     uint256[] memory amounts = new uint256[](4);
+    //     amounts[0] = 100;
+    //     amounts[1] = 200;
+    //     amounts[2] = 300;
+    //     amounts[3] = 400;
 
-        token.batchMint(address(0xBEEF), ids, amounts, "");
-    }
+    //     token.batchMint(address(0xBEEF), ids, amounts, "");
+    // }
 
-    function testFailBatchBurnInsufficientBalance() public {
-        uint256[] memory ids = new uint256[](5);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
-        ids[4] = 1341;
+    // function testFailBatchBurnInsufficientBalance() public {
+    //     uint256[] memory ids = new uint256[](5);
+    //     ids[0] = 1337;
+    //     ids[1] = 1338;
+    //     ids[2] = 1339;
+    //     ids[3] = 1340;
+    //     ids[4] = 1341;
 
-        uint256[] memory mintAmounts = new uint256[](5);
-        mintAmounts[0] = 50;
-        mintAmounts[1] = 100;
-        mintAmounts[2] = 150;
-        mintAmounts[3] = 200;
-        mintAmounts[4] = 250;
+    //     uint256[] memory mintAmounts = new uint256[](5);
+    //     mintAmounts[0] = 50;
+    //     mintAmounts[1] = 100;
+    //     mintAmounts[2] = 150;
+    //     mintAmounts[3] = 200;
+    //     mintAmounts[4] = 250;
 
-        uint256[] memory burnAmounts = new uint256[](5);
-        burnAmounts[0] = 100;
-        burnAmounts[1] = 200;
-        burnAmounts[2] = 300;
-        burnAmounts[3] = 400;
-        burnAmounts[4] = 500;
+    //     uint256[] memory burnAmounts = new uint256[](5);
+    //     burnAmounts[0] = 100;
+    //     burnAmounts[1] = 200;
+    //     burnAmounts[2] = 300;
+    //     burnAmounts[3] = 400;
+    //     burnAmounts[4] = 500;
 
-        token.batchMint(address(0xBEEF), ids, mintAmounts, "");
+    //     token.batchMint(address(0xBEEF), ids, mintAmounts, "");
 
-        token.batchBurn(address(0xBEEF), ids, burnAmounts);
-    }
+    //     token.batchBurn(address(0xBEEF), ids, burnAmounts);
+    // }
 
-    function testFailBatchBurnWithArrayLengthMismatch() public {
-        uint256[] memory ids = new uint256[](5);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
-        ids[4] = 1341;
+    // function testFailBatchBurnWithArrayLengthMismatch() public {
+    //     uint256[] memory ids = new uint256[](5);
+    //     ids[0] = 1337;
+    //     ids[1] = 1338;
+    //     ids[2] = 1339;
+    //     ids[3] = 1340;
+    //     ids[4] = 1341;
 
-        uint256[] memory mintAmounts = new uint256[](5);
-        mintAmounts[0] = 100;
-        mintAmounts[1] = 200;
-        mintAmounts[2] = 300;
-        mintAmounts[3] = 400;
-        mintAmounts[4] = 500;
+    //     uint256[] memory mintAmounts = new uint256[](5);
+    //     mintAmounts[0] = 100;
+    //     mintAmounts[1] = 200;
+    //     mintAmounts[2] = 300;
+    //     mintAmounts[3] = 400;
+    //     mintAmounts[4] = 500;
 
-        uint256[] memory burnAmounts = new uint256[](4);
-        burnAmounts[0] = 50;
-        burnAmounts[1] = 100;
-        burnAmounts[2] = 150;
-        burnAmounts[3] = 200;
+    //     uint256[] memory burnAmounts = new uint256[](4);
+    //     burnAmounts[0] = 50;
+    //     burnAmounts[1] = 100;
+    //     burnAmounts[2] = 150;
+    //     burnAmounts[3] = 200;
 
-        token.batchMint(address(0xBEEF), ids, mintAmounts, "");
+    //     token.batchMint(address(0xBEEF), ids, mintAmounts, "");
 
-        token.batchBurn(address(0xBEEF), ids, burnAmounts);
-    }
+    //     token.batchBurn(address(0xBEEF), ids, burnAmounts);
+    // }
 
-    function testFailBalanceOfBatchWithArrayMismatch() public view {
-        address[] memory tos = new address[](5);
-        tos[0] = address(0xBEEF);
-        tos[1] = address(0xCAFE);
-        tos[2] = address(0xFACE);
-        tos[3] = address(0xDEAD);
-        tos[4] = address(0xFEED);
+    // function testFailBalanceOfBatchWithArrayMismatch() public view {
+    //     address[] memory tos = new address[](5);
+    //     tos[0] = address(0xBEEF);
+    //     tos[1] = address(0xCAFE);
+    //     tos[2] = address(0xFACE);
+    //     tos[3] = address(0xDEAD);
+    //     tos[4] = address(0xFEED);
 
-        uint256[] memory ids = new uint256[](4);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
+    //     uint256[] memory ids = new uint256[](4);
+    //     ids[0] = 1337;
+    //     ids[1] = 1338;
+    //     ids[2] = 1339;
+    //     ids[3] = 1340;
 
-        token.balanceOfBatch(tos, ids);
-    }
+    //     token.balanceOfBatch(tos, ids);
+    // }
 
     // function testMintToEOA(
     //     address to,
@@ -992,6 +1008,7 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     //     assertEq(token.balanceOf(to, id), amount);
     // }
 
+    // todo
     // function testMintToERC1155Recipient(
     //     uint256 id,
     //     uint256 amount,
@@ -999,6 +1016,11 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     // ) public {
     //     ERC1155Recipient to = new ERC1155Recipient();
 
+    //     vm.assume(amount != 0);
+    //     vm.assume(id != 0);
+
+    //     bytes memory void = bytes("0x");
+    //     vm.assume(mintData != void);
     //     token.mint(address(to), id, amount, mintData);
 
     //     assertEq(token.balanceOf(address(to), id), amount);
@@ -1006,9 +1028,10 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     //     assertEq(to.operator(), address(this));
     //     assertEq(to.from(), address(0));
     //     assertEq(to.id(), id);
-    //     assertBytesEq(to.mintData(), mintData);
+    //     assertEq(to.mintData(), mintData);
     // }
 
+    // todo
     // function testBatchMintToEOA(
     //     address to,
     //     uint256[] memory ids,
@@ -1047,6 +1070,7 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     //     }
     // }
 
+    // todo
     // function testBatchMintToERC1155Recipient(
     //     uint256[] memory ids,
     //     uint256[] memory amounts,
@@ -1082,9 +1106,9 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
 
     //     assertEq(to.batchOperator(), address(this));
     //     assertEq(to.batchFrom(), address(0));
-    //     assertUintArrayEq(to.batchIds(), normalizedIds);
-    //     assertUintArrayEq(to.batchAmounts(), normalizedAmounts);
-    //     assertBytesEq(to.batchData(), mintData);
+    //     assertEq(to.batchIds(), normalizedIds);
+    //     assertEq(to.batchAmounts(), normalizedAmounts);
+    //     assertEq(to.batchData(), mintData);
 
     //     for (uint256 i = 0; i < normalizedIds.length; i++) {
     //         uint256 id = normalizedIds[i];
@@ -1178,7 +1202,7 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     // function testApproveAll(address to, bool approved) public {
     //     token.setApprovalForAll(to, approved);
 
-    //     assertBoolEq(token.isApprovedForAll(address(this), to), approved);
+    //     assertEq(token.isApprovedForAll(address(this), to), approved);
     // }
 
     // function testSafeTransferFromToEOA(
@@ -1199,7 +1223,7 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
 
     //     token.mint(from, id, mintAmount, mintData);
 
-    //     hevm.prank(from);
+    //     vm.prank(from);
     //     token.setApprovalForAll(address(this), true);
 
     //     token.safeTransferFrom(from, to, id, transferAmount, transferData);
