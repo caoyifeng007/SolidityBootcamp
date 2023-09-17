@@ -40,9 +40,6 @@ object "ERC1155Token" {
             } 
         }
 
-
-
-
         // Deploy the contract
         datacopy(0, dataoffset("runtime"), datasize("runtime"))
         return(0, datasize("runtime"))
@@ -99,7 +96,7 @@ object "ERC1155Token" {
                 revertIfZeroAddress(to)
 
                 let toBalance := balanceOf(tokenId, to)
-                sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
+                sstore(tokenIdToAccountToBalancePos(tokenId, to), safeAdd(toBalance, amount))
 
                 if isContract(to) {
                     let success := doSafeTransferAcceptanceCheck(caller(), 0, to, tokenId, amount, dataPtr)
@@ -190,7 +187,7 @@ object "ERC1155Token" {
                 sstore(tokenIdToAccountToBalancePos(tokenId, from), sub(fromBalance, amount))
 
                 let toBalance := balanceOf(to, tokenId)
-                sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
+                sstore(tokenIdToAccountToBalancePos(tokenId, to), safeAdd(toBalance, amount))
 
                 if isContract(to) {
                     let success := doSafeTransferAcceptanceCheck(operator, from, to, tokenId, amount, dataPtr)
@@ -222,7 +219,7 @@ object "ERC1155Token" {
                     sstore(tokenIdToAccountToBalancePos(tokenId, from), sub(fromBalance, amount))
 
                     let toBalance := balanceOf(to, tokenId)
-                    sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
+                    sstore(tokenIdToAccountToBalancePos(tokenId, to), safeAdd(toBalance, amount))
 
                 }
 
