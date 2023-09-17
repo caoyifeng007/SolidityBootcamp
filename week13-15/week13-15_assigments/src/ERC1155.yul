@@ -3,7 +3,6 @@
 object "ERC1155Token" {
     code {
         // store the uri in slot 2.
-        // sstore(2, caller())
         let totalLen := codesize()
         let creationLen := datasize("ERC1155Token")
         let argLen := sub(totalLen, creationLen)
@@ -19,26 +18,30 @@ object "ERC1155Token" {
             sstore(2, or(str, mul(strLen, 2)))
         }
 
-        // calldatacopy(0x00, 0x20, strLen)
+        // long string, strLen >= 32
+        if gt(strLen, 31) {
+            sstore(2, add(mul(strLen, 2), 1))
 
-        // if strLen is 32
-        // then 32 * 2 + 1 will be 0x41
-        // so 2 * strLen + 1 > 0x40 will be long string
-        // storedLen := add(mul(strLen, 2), 1)
-        // if gt(storedLen, 0x40) {
-        //     //
-        // }
+            mstore(0x00, 0x02)
+            let location := keccak256(0x00, 0x20)
 
-        // revert(0x00, 0x00)
+            let iteration := div(strLen, 0x20)
+            if mod(strLen, 0x20) {
+                iteration := add(iteration, 1)
+            }
 
-        // function hashTwoValues(a, b) -> r {
-        //     mstore(0x00, a)
-        //     mstore(0x20, b)
+            let increase := 0
+            let item := 0
+            for { let i := 0 } lt(i, iteration) { i := add(i, 1) } {
+                item := mload(add(0x40, increase))
+                sstore(add(location, i), item)
 
-        //     r := keccak256(0x00, 0x40)
-        // }
+                increase := add(increase, 0x20)
+            } 
+        }
 
-        // let hash := hashTwoValues(1, 2)
+
+
 
         // Deploy the contract
         datacopy(0, dataoffset("runtime"), datasize("runtime"))
@@ -271,36 +274,48 @@ object "ERC1155Token" {
             }
             function uri(tokenId) {
 
-                let uriSlotVal := sload(uriPos())
-                let storedLen := and(uriSlotVal, 0xff)
+                let uriStorageVal := sload(uriPos())
+                let storedLen := and(uriStorageVal , 0xff)
+                let strLen := 0
 
-                // if strLen is 31
-                // then 31 * 2 will be 0x3e
-                // so 2 * strLen < 0x3f will be short string
+                // if strLen is 31, then 31 * 2 will be 0x3e
+                // 2 * strLen < 0x3f, short string
                 if lt(storedLen, 0x3f) {
-                    let strLen := div(storedLen, 2)
+                    strLen := div(storedLen, 2)
                     mstore(0x00, 0x20)
                     mstore(0x20, strLen)
-
-                    mstore(0x40, uriSlotVal)
+                    mstore(0x40, uriStorageVal)
 
                     return(0x00, add(strLen, 0x40))
                 }
 
-                // mstore(0x00, 0x20)
-                // mstore(0x20, 31)
-                // mstore(0x40, sload(uriPos()))
+                // if strLen is 32, then 32 * 2 + 1 will be 0x41
+                // 2 * strLen + 1 > 0x40, long string
+                if gt(storedLen, 0x40) {
 
-                // return(0x00, 0x41)
+                    strLen := div(sub(storedLen, 1), 2)
 
+                    let iteration := div(strLen, 0x20)
+                    if mod(strLen, 0x20) {
+                        iteration := add(iteration, 1)
+                    }
 
-                // if strLen is 32
-                // then 32 * 2 + 1 will be 0x41
-                // so 2 * strLen + 1 > 0x40 will be long string
-                // storedLen := add(mul(strLen, 2), 1)
-                // if gt(storedLen, 0x40) {
-                //     //
-                // }
+                    mstore(0x00, 0x02)
+                    let location := keccak256(0x00, 0x20)
+
+                    mstore(0x00, 0x20)
+                    mstore(0x20, strLen)
+
+                    let increase := 0
+                    for { let i := 0 } lt(i, iteration) { i := add(i, 1) } {
+                        let item := sload(add(location, i))
+
+                        mstore(add(0x40, increase), item)
+                        increase := add(increase, 0x20)
+                    } 
+
+                    return(0x00, add(mul(iteration, 0x20), 0x40))
+                }
             }
             function emitTransferSingle(operator, from, to, tokenId, amount) {
                 // "TransferSingle(address,address,address,uint256,uint256)" 
