@@ -20,7 +20,9 @@ object "ERC1155Token" {
             case 0x4e1273f4 /* "balanceOfBatch(address[],uint256[])" */ {
                 // returnUint(balanceOfBatch())
             }
-            case 0xe985e9c5 /* "isApprovedForAll(address,address)" */ {}
+            case 0xe985e9c5 /* "isApprovedForAll(address,address)" */ {
+                returnUint(isApprovedForAll(decodeAsAddress(0), decodeAsAddress(1)))
+            }
             case 0x731133e9 /* "mint(address,uint256,uint256,bytes)" */ {
                 mint(decodeAsAddress(0), decodeAsUint(1), decodeAsUint(2), decodeAsDynamicTypePtr(3))
             }
@@ -35,7 +37,9 @@ object "ERC1155Token" {
             }
             case 0x2eb2c2d6 /* "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)" */ {}
             case 0xf242432a /* "safeTransferFrom(address,address,uint256,uint256,bytes)" */ {}
-            case 0xa22cb465 /* "setApprovalForAll(address,bool)" */ {}
+            case 0xa22cb465 /* "setApprovalForAll(address,bool)" */ {
+                setApprovalForAll(decodeAsAddress(0), decodeAsUint(1))
+            }
             case 0x01ffc9a7 /* "supportsInterface(bytes4)" */ {}
             case 0x0e89341c /* "uri(uint256)" */ {}
             default /* "fallback()" */ {}
@@ -116,6 +120,19 @@ object "ERC1155Token" {
 
                 emitTransferBatch(caller(), from, 0, idsPtr, amountsPtr)
             }
+            function setApprovalForAll(spender, approved) {
+                let owner := caller()
+
+                require(iszero(eq(owner, spender)))
+                require(or(eq(approved, 0), eq(approved, 1)))
+
+                sstore(ownerToSpenderToApproved(owner, spender), approved)
+
+                emitApprovalForAll(caller(), spender, approved)
+            }
+            function isApprovedForAll(owner, spender) -> b {
+                b := sload(ownerToSpenderToApproved(owner, spender))
+            }
             function balanceOf(account, tokenId) -> v {
                 v := sload(tokenIdToAccountToBalancePos(tokenId, account))
             }
@@ -157,6 +174,14 @@ object "ERC1155Token" {
                 log4(oldFmptr, add(0x40, totalDataLen), topic1, operator, from, to)
 
                 updateFmptr(add(0x40, totalDataLen))
+            }
+            function emitApprovalForAll(owner, spender, approved) {
+                // "ApprovalForAll(address,address,bool)"
+                // 0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31
+                let topic1 := 0x17307eab39ab6107e8899845ad3d59bd9653f200f220920489ca2b5937696c31
+                mstore(0x00, approved)
+
+                log3(0x00, 0x20, topic1, owner, spender)
             }
 
             /* ---------- calldata functionality ----------- */
@@ -254,6 +279,9 @@ object "ERC1155Token" {
             function operatorApprovalMapPos() -> p { p := 1 }
             function tokenIdToAccountToBalancePos(tokenId, account) -> p {
                 p := hashTwoValues(account, hashTwoValues(tokenId, balanceMapPos()))
+            }
+            function ownerToSpenderToApproved(owner, spender) -> p {
+                p := hashTwoValues(spender, hashTwoValues(owner, operatorApprovalMapPos()))
             }
            
 
