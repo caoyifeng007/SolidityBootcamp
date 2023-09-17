@@ -145,8 +145,10 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
 
         // 31 byte long short string
         // bytes memory args = abi.encode("abcdefghigklmnopqrstuvwxyzabcde");
+
+        // 39 byte long short string
         bytes memory args = abi.encode(
-            "abcdefghigklmnopqrstuvwxyzabcdefghigklmnopqrstuvwxyz"
+            "https://game.example/api/item/{id}.json"
         );
         bytes memory bytecode = abi.encodePacked(
             vm.getCode("ERC1155.yul:ERC1155Token"),
@@ -162,10 +164,7 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
 
     function testUri() external {
         // assertEq(token.uri(0), "abcdefghigklmnopqrstuvwxyzabcde");
-        assertEq(
-            token.uri(0),
-            "abcdefghigklmnopqrstuvwxyzabcdefghigklmnopqrstuvwxyz"
-        );
+        assertEq(token.uri(0), "https://game.example/api/item/{id}.json");
     }
 
     // function testSupportsInterface() external {
