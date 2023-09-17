@@ -161,6 +161,7 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
         assertTrue(
             token.supportsInterface(type(IERC1155MetadataURI).interfaceId)
         );
+        assertFalse(token.supportsInterface(0xaabbccdd));
     }
 
     event TransferSingle(
