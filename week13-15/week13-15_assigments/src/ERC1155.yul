@@ -24,6 +24,9 @@ object "ERC1155Token" {
             case 0x731133e9 /* "mint(address,uint256,uint256,bytes)" */ {
                 mint(decodeAsAddress(0), decodeAsUint(1), decodeAsUint(2), decodeAsDynamicTypePtr(3))
             }
+            case 0xb48ab8b6 /* "batchMint(address,uint256[],uint256[],bytes)" */ {
+                mintBatch(decodeAsAddress(0), decodeAsDynamicTypePtr(1), decodeAsDynamicTypePtr(2), decodeAsDynamicTypePtr(3))
+            }
             case 0x2eb2c2d6 /* "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)" */ {}
             case 0xf242432a /* "safeTransferFrom(address,address,uint256,uint256,bytes)" */ {}
             case 0xa22cb465 /* "setApprovalForAll(address,bool)" */ {}
@@ -37,26 +40,86 @@ object "ERC1155Token" {
                 mstore(0x40, 0x80)
             }
             function mint(to, tokenId, amount, dataPtr) {
-                // account != address(0)
+                // to != address(0)
                 require(iszero(eq(to, 0)))
 
                 sstore(tokenIdToAccountToBalancePos(tokenId, to), amount)
 
                 if isContract(to) {
-
                     let success := doSafeTransferAcceptanceCheck(caller(), 0, to, tokenId, amount, dataPtr)
-
                     require(success)
-                    
-                    updateFmptr(0xe4)
 
                 }
 
-                returnTrue()
+                emitTransferSingle(caller(), 0, to, tokenId, amount)
+            }
+            function mintBatch(to, idsPtr, amountsPtr, dataPtr) {
+                // to != address(0)
+                require(iszero(eq(to, 0)))
+                let idsLen := getDynamicTypeLen(idsPtr)
+                let amountsLen := getDynamicTypeLen(amountsPtr)
+                require(eq(idsLen, amountsLen))
+
+                let idItem := getDynamicTypeActualDataPtr(idsPtr)
+                let amountItem := getDynamicTypeActualDataPtr(amountsPtr)
+
+                for { let i := 0 } lt(i, idsLen) { i := add(i, 1) } {
+                    let tokenId := calldataload(add(idItem, mul(i, 0x20)))
+                    let amount := calldataload(add(amountItem, mul(i, 0x20)))
+
+                    sstore(tokenIdToAccountToBalancePos(tokenId, to), amount)
+                }
+
+                if isContract(to) {
+                    let success := doSafeBatchTransferAcceptanceCheck(caller(), 0, to, idsPtr, amountsPtr, dataPtr)
+                    require(success)
+                }
+
+                emitTransferBatch(caller(), 0, to, idsPtr, amountsPtr)
             }
             function balanceOf(account, tokenId) -> v {
                 v := sload(tokenIdToAccountToBalancePos(tokenId, account))
             }
+            function emitTransferSingle(operator, from, to, tokenId, amount) {
+                // "TransferSingle(address,address,address,uint256,uint256)" 
+                // 0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62
+                let topic1 := 0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62
+
+                mstore(0x00, tokenId)
+                mstore(0x20, amount)
+
+                log4(0x00, 0x40, topic1, operator, from, to)
+            }
+            function emitTransferBatch(operator, from, to, idsPtr, amountsPtr) {
+                // "TransferBatch(address,address,address,uint256[],uint256[])" 
+                // 0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb
+                let topic1 := 0x4a39dc06d4c0dbc64b70af90fd698a233a518aa5d07e595d983b8c0526c8f7fb
+
+                let oldFmptr := getFmptr()
+
+                // "uint256[],uint256[])"
+
+                // calculate dynamic type offset
+                // 1 slot = 32 bytes
+                let slots := 2
+                mstore(oldFmptr, mul(0x20, slots))
+
+                // amounts offset
+                let idsLen := getDynamicTypeLen(idsPtr)
+                slots := add(add(idsLen, 1), slots)
+                mstore(add(oldFmptr, 0x20), mul(0x20, slots))
+
+                let amountsLen := getDynamicTypeLen(amountsPtr)
+                // ids + amounts
+                let totalDataLen := mul(add(add(idsLen, amountsLen), 2), 0x20)
+                // actual data portion starts from the idsLen offset
+                calldatacopy(add(oldFmptr, 0x40), idsPtr, totalDataLen)
+
+                log4(oldFmptr, add(0x40, totalDataLen), topic1, operator, from, to)
+
+                updateFmptr(add(0x40, totalDataLen))
+            }
+
             /* ---------- calldata functionality ----------- */
             function selector() -> s {
                 s := calldataload(0x00)
@@ -90,13 +153,54 @@ object "ERC1155Token" {
                 mstore(add(oldFmptr, 0x60), tokenId)
                 mstore(add(oldFmptr, 0x80), amount)
 
-                let dataLen := getDynamicTypeLen(dataPtr)
-                let actualDataPtr := getDynamicTypeActualDataPtr(dataPtr)
-                mstore(add(oldFmptr, 0xa0), 0xa0)
-                mstore(add(oldFmptr, 0xc0), dataLen)
-                calldatacopy(add(oldFmptr, 0xe0), actualDataPtr, dataLen)
+                // calculate dynamic type offset
+                // 1 slot = 32 bytes
+                let slots := 5
+                mstore(add(oldFmptr, 0xa0), mul(0x20, slots))
 
-                v := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xe4, dataLen), 0, 0)
+                // only data
+                let totalDataLen := sub(calldatasize(), 0x84)
+
+                // actual data portion starts from the data offset
+                calldatacopy(add(oldFmptr, 0xc0), dataPtr, totalDataLen)
+
+                v := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xc4, totalDataLen), 0, 0)
+
+                updateFmptr(add(0xc4, totalDataLen))
+            }
+            function doSafeBatchTransferAcceptanceCheck(operator, from, to, idsPtr, amountsPtr, dataPtr) -> v {
+                let oldFmptr := getFmptr()
+
+                // bc197c81 -> "onERC1155BatchReceived(address,address,uint256[],uint256[],bytes)"
+                mstore(oldFmptr, 0xbc197c81)
+                mstore(add(oldFmptr, 0x20), operator)
+                mstore(add(oldFmptr, 0x40), from)
+
+                // calculate dynamic type offset
+                // 1 slot = 32 bytes
+                let slots := 5
+
+                // ids offset
+                mstore(add(oldFmptr, 0x60), mul(0x20, slots))
+
+                // amounts offset
+                let idsLen := getDynamicTypeLen(idsPtr)
+                slots := add(add(idsLen, 1), slots)
+                mstore(add(oldFmptr, 0x80), mul(0x20, slots))
+
+                // data offset
+                let amountsLen := getDynamicTypeLen(amountsPtr)
+                slots := add(add(amountsLen, 1), slots)
+                mstore(add(oldFmptr, 0xa0), mul(0x20, slots))
+
+                // ids + amounts + data
+                let totalDataLen := sub(calldatasize(), 0x84)
+                // actual data portion starts from the idsLen offset
+                calldatacopy(add(oldFmptr, 0xc0), idsPtr, totalDataLen )
+
+                v := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xe4, totalDataLen), 0, 0)
+
+                updateFmptr(add(0xe4, totalDataLen))
             }
             function returnUint(v) {
                 mstore(0, v)
