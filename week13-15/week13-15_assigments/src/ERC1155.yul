@@ -18,7 +18,7 @@ object "ERC1155Token" {
                 returnUint(balanceOf(decodeAsAddress(0), decodeAsUint(1)))
             }
             case 0x4e1273f4 /* "balanceOfBatch(address[],uint256[])" */ {
-                // returnUint(balanceOfBatch())
+                balanceOfBatch(decodeAsDynamicTypePtr(0), decodeAsDynamicTypePtr(1))
             }
             case 0xe985e9c5 /* "isApprovedForAll(address,address)" */ {
                 returnUint(isApprovedForAll(decodeAsAddress(0), decodeAsAddress(1)))
@@ -194,6 +194,32 @@ object "ERC1155Token" {
             }
             function balanceOf(account, tokenId) -> v {
                 v := sload(tokenIdToAccountToBalancePos(tokenId, account))
+            }
+            function balanceOfBatch(tosPtr, idsPtr) {
+                let tosLen := getDynamicTypeLen(tosPtr)
+                let idsLen := getDynamicTypeLen(idsPtr)
+                require(eq(tosLen, idsLen))
+
+                let oldFmptr := getFmptr()
+                mstore(oldFmptr, 0x20)
+                mstore(add(oldFmptr, 0x20), tosLen)
+
+                let toItem := getDynamicTypeActualDataPtr(tosPtr)
+                let idItem := getDynamicTypeActualDataPtr(idsPtr)
+
+                // there are two slots used
+                let offset := 0x40
+                for { let i := 0 } lt(i, tosLen) { i := add(i, 1) } {
+                    let to := calldataload(add(toItem, mul(i, 0x20)))
+                    let id := calldataload(add(idItem, mul(i, 0x20)))
+
+                    let b := balanceOf(to, id)
+
+                    mstore(add(oldFmptr, offset), b)
+                    offset := add(offset, 0x20)
+                }
+
+                return(oldFmptr, add(oldFmptr, offset))
             }
             function emitTransferSingle(operator, from, to, tokenId, amount) {
                 // "TransferSingle(address,address,address,uint256,uint256)" 
