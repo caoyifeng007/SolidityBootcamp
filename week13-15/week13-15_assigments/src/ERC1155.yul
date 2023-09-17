@@ -311,7 +311,10 @@ object "ERC1155Token" {
                 // actual data portion starts from the data offset
                 calldatacopy(add(oldFmptr, 0xc0), dataPtr, totalDataLen)
 
-                v := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xc4, totalDataLen), 0, 0)
+                let success := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xc4, totalDataLen), 0, 0x20)
+                require(success)
+
+                require(eq(mload(0x00), 0xf23a6e61))
 
                 updateFmptr(add(0xc4, totalDataLen))
             }
@@ -345,7 +348,10 @@ object "ERC1155Token" {
                 // actual data portion starts from the idsLen offset
                 calldatacopy(add(oldFmptr, 0xc0), idsPtr, totalDataLen )
 
-                v := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xe4, totalDataLen), 0, 0)
+                let success := call(gas(), to, 0, add(oldFmptr, 0x1c), add(0xe4, totalDataLen), 0, 0x20)
+                require(success)
+
+                require(eq(mload(0x00), 0xbc197c81))
 
                 updateFmptr(add(0xe4, totalDataLen))
             }
