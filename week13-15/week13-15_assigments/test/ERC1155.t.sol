@@ -124,7 +124,7 @@ contract ERC1155Recipient is ERC1155TokenReceiver {
 
 // contract NonERC1155Recipient {}
 
-contract ERC1155Test is Test {
+contract ERC1155Test is Test, ERC1155TokenReceiver {
     // solhint-disable-next-line
     MockERC1155 token;
 
@@ -323,19 +323,19 @@ contract ERC1155Test is Test {
     //     assertTrue(token.isApprovedForAll(address(this), address(0xBEEF)));
     // }
 
-    function testSafeTransferFromToEOA() public {
-        address from = address(0xABCD);
+    // function testSafeTransferFromToEOA() public {
+    //     address from = address(0xABCD);
 
-        token.mint(from, 1337, 100, "");
+    //     token.mint(from, 1337, 100, "");
 
-        vm.prank(from);
-        token.setApprovalForAll(address(this), true);
+    //     vm.prank(from);
+    //     token.setApprovalForAll(address(this), true);
 
-        token.safeTransferFrom(from, address(0xBEEF), 1337, 70, "");
+    //     token.safeTransferFrom(from, address(0xBEEF), 1337, 70, "");
 
-        assertEq(token.balanceOf(address(0xBEEF), 1337), 70);
-        assertEq(token.balanceOf(from, 1337), 30);
-    }
+    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 70);
+    //     assertEq(token.balanceOf(from, 1337), 30);
+    // }
 
     // function testSafeTransferFromToERC1155Recipient() public {
     //     ERC1155Recipient to = new ERC1155Recipient();
@@ -344,7 +344,7 @@ contract ERC1155Test is Test {
 
     //     token.mint(from, 1337, 100, "");
 
-    //     hevm.prank(from);
+    //     vm.prank(from);
     //     token.setApprovalForAll(address(this), true);
 
     //     token.safeTransferFrom(from, address(to), 1337, 70, "testing 123");
@@ -352,20 +352,20 @@ contract ERC1155Test is Test {
     //     assertEq(to.operator(), address(this));
     //     assertEq(to.from(), from);
     //     assertEq(to.id(), 1337);
-    //     assertBytesEq(to.mintData(), "testing 123");
+    //     assertEq(to.mintData(), "testing 123");
 
     //     assertEq(token.balanceOf(address(to), 1337), 70);
     //     assertEq(token.balanceOf(from, 1337), 30);
     // }
 
-    // function testSafeTransferFromSelf() public {
-    //     token.mint(address(this), 1337, 100, "");
+    function testSafeTransferFromSelf() public {
+        token.mint(address(this), 1337, 100, "");
 
-    //     token.safeTransferFrom(address(this), address(0xBEEF), 1337, 70, "");
+        token.safeTransferFrom(address(this), address(0xBEEF), 1337, 70, "");
 
-    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 70);
-    //     assertEq(token.balanceOf(address(this), 1337), 30);
-    // }
+        assertEq(token.balanceOf(address(0xBEEF), 1337), 70);
+        assertEq(token.balanceOf(address(this), 1337), 30);
+    }
 
     // function testSafeBatchTransferFromToEOA() public {
     //     address from = address(0xABCD);
