@@ -2,8 +2,43 @@
 
 object "ERC1155Token" {
     code {
-        // Store the creator in slot zero.
-        sstore(0, caller())
+        // store the uri in slot 2.
+        // sstore(2, caller())
+        let totalLen := codesize()
+        let creationLen := datasize("ERC1155Token")
+        let argLen := sub(totalLen, creationLen)
+
+        // arg starts from the end of creation code
+        codecopy(0x00, creationLen, argLen)
+
+        let strLen := mload(0x20)
+
+        // short string, strLen <= 31
+        if lt(strLen, 32) {
+            let str := mload(0x40)
+            sstore(2, or(str, mul(strLen, 2)))
+        }
+
+        // calldatacopy(0x00, 0x20, strLen)
+
+        // if strLen is 32
+        // then 32 * 2 + 1 will be 0x41
+        // so 2 * strLen + 1 > 0x40 will be long string
+        // storedLen := add(mul(strLen, 2), 1)
+        // if gt(storedLen, 0x40) {
+        //     //
+        // }
+
+        // revert(0x00, 0x00)
+
+        // function hashTwoValues(a, b) -> r {
+        //     mstore(0x00, a)
+        //     mstore(0x20, b)
+
+        //     r := keccak256(0x00, 0x40)
+        // }
+
+        // let hash := hashTwoValues(1, 2)
 
         // Deploy the contract
         datacopy(0, dataoffset("runtime"), datasize("runtime"))
@@ -47,7 +82,9 @@ object "ERC1155Token" {
             case 0x01ffc9a7 /* "supportsInterface(bytes4)" */ {
                 returnUint(supportsInterface(decodeAsUint(0)))
             }
-            case 0x0e89341c /* "uri(uint256)" */ {}
+            case 0x0e89341c /* "uri(uint256)" */ {
+                uri(decodeAsUint(0))
+            }
             default /* "fallback()" */ {}
             
 
@@ -232,6 +269,39 @@ object "ERC1155Token" {
                 // IERC1155 -> 0xd9b67a26
                 b := or(eq(interfaceId, 0xd9b67a26), b)
             }
+            function uri(tokenId) {
+
+                let uriSlotVal := sload(uriPos())
+                let storedLen := and(uriSlotVal, 0xff)
+
+                // if strLen is 31
+                // then 31 * 2 will be 0x3e
+                // so 2 * strLen < 0x3f will be short string
+                if lt(storedLen, 0x3f) {
+                    let strLen := div(storedLen, 2)
+                    mstore(0x00, 0x20)
+                    mstore(0x20, strLen)
+
+                    mstore(0x40, uriSlotVal)
+
+                    return(0x00, add(strLen, 0x40))
+                }
+
+                // mstore(0x00, 0x20)
+                // mstore(0x20, 31)
+                // mstore(0x40, sload(uriPos()))
+
+                // return(0x00, 0x41)
+
+
+                // if strLen is 32
+                // then 32 * 2 + 1 will be 0x41
+                // so 2 * strLen + 1 > 0x40 will be long string
+                // storedLen := add(mul(strLen, 2), 1)
+                // if gt(storedLen, 0x40) {
+                //     //
+                // }
+            }
             function emitTransferSingle(operator, from, to, tokenId, amount) {
                 // "TransferSingle(address,address,address,uint256,uint256)" 
                 // 0xc3d58168c5ae7397731d063d5bbf3d657854427343f4c083240f7aacaa2d0f62
@@ -378,6 +448,7 @@ object "ERC1155Token" {
             /* -------- storage layout ---------- */
             function balanceMapPos() -> p { p := 0 }
             function operatorApprovalMapPos() -> p { p := 1 }
+            function uriPos() -> p { p := 2 }
             function tokenIdToAccountToBalancePos(tokenId, account) -> p {
                 p := hashTwoValues(account, hashTwoValues(tokenId, balanceMapPos()))
             }

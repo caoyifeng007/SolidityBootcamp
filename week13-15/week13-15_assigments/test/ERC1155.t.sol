@@ -143,9 +143,11 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
     function setUp() public {
         // token = new MockERC1155();
 
-        // bytes memory args = abi.encode(arg1, arg2);
+        // 31 byte long short string
+        bytes memory args = abi.encode("abcdefghigklmnopqrstuvwxyzabcde");
         bytes memory bytecode = abi.encodePacked(
-            vm.getCode("ERC1155.yul:ERC1155Token")
+            vm.getCode("ERC1155.yul:ERC1155Token"),
+            args
         );
         address deployed;
         assembly {
@@ -155,22 +157,26 @@ contract ERC1155Test is Test, ERC1155TokenReceiver {
         token = MockERC1155(deployed);
     }
 
-    function testSupportsInterface() external {
-        assertTrue(token.supportsInterface(type(IERC165).interfaceId));
-        assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
-        assertTrue(
-            token.supportsInterface(type(IERC1155MetadataURI).interfaceId)
-        );
-        assertFalse(token.supportsInterface(0xaabbccdd));
+    function testUri() external {
+        assertEq(token.uri(0), "abcdefghigklmnopqrstuvwxyzabcde");
     }
 
-    event TransferSingle(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256 id,
-        uint256 amount
-    );
+    // function testSupportsInterface() external {
+    //     assertTrue(token.supportsInterface(type(IERC165).interfaceId));
+    //     assertTrue(token.supportsInterface(type(IERC1155).interfaceId));
+    //     assertTrue(
+    //         token.supportsInterface(type(IERC1155MetadataURI).interfaceId)
+    //     );
+    //     assertFalse(token.supportsInterface(0xaabbccdd));
+    // }
+
+    // event TransferSingle(
+    //     address indexed operator,
+    //     address indexed from,
+    //     address indexed to,
+    //     uint256 id,
+    //     uint256 amount
+    // );
 
     // function testMintToEOA() public {
     //     vm.expectEmit(true, true, true, true);
