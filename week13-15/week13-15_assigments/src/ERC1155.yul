@@ -35,7 +35,9 @@ object "ERC1155Token" {
             case 0xf6eb127a /* "batchBurn(address,uint256[],uint256[])" */ {
                 batchBurn(decodeAsAddress(0), decodeAsDynamicTypePtr(1), decodeAsDynamicTypePtr(2))
             }
-            case 0x2eb2c2d6 /* "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)" */ {}
+            case 0x2eb2c2d6 /* "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)" */ {
+                safeBatchTransferFrom(decodeAsAddress(0), decodeAsAddress(1), decodeAsDynamicTypePtr(2), decodeAsDynamicTypePtr(3), decodeAsDynamicTypePtr(4))
+            }
             case 0xf242432a /* "safeTransferFrom(address,address,uint256,uint256,bytes)" */ {
                 safeTransferFrom(decodeAsAddress(0), decodeAsAddress(1), decodeAsUint(2), decodeAsUint(3),decodeAsDynamicTypePtr(4))
             }
@@ -55,7 +57,8 @@ object "ERC1155Token" {
                 // to != address(0)
                 require(iszero(eq(to, 0)))
 
-                sstore(tokenIdToAccountToBalancePos(tokenId, to), amount)
+                let toBalance := balanceOf(tokenId, to)
+                sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
 
                 if isContract(to) {
                     let success := doSafeTransferAcceptanceCheck(caller(), 0, to, tokenId, amount, dataPtr)
@@ -135,6 +138,8 @@ object "ERC1155Token" {
                 b := sload(ownerToSpenderToApproved(owner, spender))
             }
             function safeTransferFrom(from, to, tokenId, amount, dataPtr) {
+                require(iszero(eq(to, 0)))
+
                 let operator := caller()
                 require(or(eq(from, operator), eq(isApprovedForAll(from, operator), 1)))
 
@@ -152,6 +157,40 @@ object "ERC1155Token" {
                 }
 
                 emitTransferSingle(operator, from, to, tokenId, amount)
+            }
+            function safeBatchTransferFrom(from, to, idsPtr, amountsPtr, dataPtr) {
+                require(iszero(eq(to, 0)))
+
+                let operator := caller()
+                require(or(eq(from, operator), eq(isApprovedForAll(from, operator), 1)))
+
+                let idsLen := getDynamicTypeLen(idsPtr)
+                let amountsLen := getDynamicTypeLen(amountsPtr)
+                require(eq(idsLen, amountsLen))
+
+                let idItem := getDynamicTypeActualDataPtr(idsPtr)
+                let amountItem := getDynamicTypeActualDataPtr(amountsPtr)
+
+                for { let i := 0 } lt(i, idsLen) { i := add(i, 1) } {
+                    let tokenId := calldataload(add(idItem, mul(i, 0x20)))
+                    let amount := calldataload(add(amountItem, mul(i, 0x20)))
+
+                    let fromBalance := balanceOf(from, tokenId)
+                    require(gte(fromBalance, amount))
+
+                    sstore(tokenIdToAccountToBalancePos(tokenId, from), sub(fromBalance, amount))
+
+                    let toBalance := balanceOf(to, tokenId)
+                    sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
+
+                }
+
+                if isContract(to) {
+                    let success := doSafeBatchTransferAcceptanceCheck(operator, from, to, idsPtr, amountsPtr, dataPtr)
+                    require(success)
+                }
+
+                emitTransferBatch(operator, from, to, idsPtr, amountsPtr)
             }
             function balanceOf(account, tokenId) -> v {
                 v := sload(tokenIdToAccountToBalancePos(tokenId, account))
