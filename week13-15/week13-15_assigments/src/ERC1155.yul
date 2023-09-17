@@ -54,8 +54,7 @@ object "ERC1155Token" {
                 mstore(0x40, 0x80)
             }
             function mint(to, tokenId, amount, dataPtr) {
-                // to != address(0)
-                require(iszero(eq(to, 0)))
+                revertIfZeroAddress(to)
 
                 let toBalance := balanceOf(tokenId, to)
                 sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
@@ -68,8 +67,8 @@ object "ERC1155Token" {
                 emitTransferSingle(caller(), 0, to, tokenId, amount)
             }
             function mintBatch(to, idsPtr, amountsPtr, dataPtr) {
-                // to != address(0)
-                require(iszero(eq(to, 0)))
+                revertIfZeroAddress(to)
+
                 let idsLen := getDynamicTypeLen(idsPtr)
                 let amountsLen := getDynamicTypeLen(amountsPtr)
                 require(eq(idsLen, amountsLen))
@@ -92,7 +91,7 @@ object "ERC1155Token" {
                 emitTransferBatch(caller(), 0, to, idsPtr, amountsPtr)
             }
             function burn(from, tokenId, amount) {
-                require(iszero(eq(from, 0)))
+                revertIfZeroAddress(from)
 
                 let fromBalance := balanceOf(from, tokenId)
                 require(gte(fromBalance, amount))
@@ -103,7 +102,7 @@ object "ERC1155Token" {
                 
             }
             function batchBurn(from, idsPtr, amountsPtr) {
-                require(iszero(eq(from, 0)))
+                revertIfZeroAddress(from)
 
                 let idsLen := getDynamicTypeLen(idsPtr)
                 let amountsLen := getDynamicTypeLen(amountsPtr)
@@ -138,7 +137,7 @@ object "ERC1155Token" {
                 b := sload(ownerToSpenderToApproved(owner, spender))
             }
             function safeTransferFrom(from, to, tokenId, amount, dataPtr) {
-                require(iszero(eq(to, 0)))
+                revertIfZeroAddress(to)
 
                 let operator := caller()
                 require(or(eq(from, operator), eq(isApprovedForAll(from, operator), 1)))
@@ -159,7 +158,7 @@ object "ERC1155Token" {
                 emitTransferSingle(operator, from, to, tokenId, amount)
             }
             function safeBatchTransferFrom(from, to, idsPtr, amountsPtr, dataPtr) {
-                require(iszero(eq(to, 0)))
+                revertIfZeroAddress(to)
 
                 let operator := caller()
                 require(or(eq(from, operator), eq(isApprovedForAll(from, operator), 1)))
@@ -287,7 +286,6 @@ object "ERC1155Token" {
                 }
                 v := calldataload(pos)
             }
-
             function decodeAsDynamicTypePtr(offset) -> v {
                 // return the pointer point to where the dataLen begin
                 v := add(decodeAsUint(offset), 0x04)
@@ -405,9 +403,6 @@ object "ERC1155Token" {
                 r := add(a, b)
                 if or(lt(r, a), lt(r, b)) { revert(0, 0) }
             }
-            // function calledByOwner() -> cbo {
-            //     cbo := eq(owner(), caller())
-            // }
             function revertIfZeroAddress(addr) {
                 require(addr)
             }
