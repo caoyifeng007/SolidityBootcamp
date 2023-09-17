@@ -27,6 +27,12 @@ object "ERC1155Token" {
             case 0xb48ab8b6 /* "batchMint(address,uint256[],uint256[],bytes)" */ {
                 mintBatch(decodeAsAddress(0), decodeAsDynamicTypePtr(1), decodeAsDynamicTypePtr(2), decodeAsDynamicTypePtr(3))
             }
+            case 0xf5298aca /* "burn(address,uint256,uint256)" */ {
+                burn(decodeAsAddress(0), decodeAsUint(1), decodeAsUint(2))
+            }
+            case 0xf6eb127a /* "batchBurn(address,uint256[],uint256[])" */ {
+                batchBurn(decodeAsAddress(0), decodeAsDynamicTypePtr(1), decodeAsDynamicTypePtr(2))
+            }
             case 0x2eb2c2d6 /* "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)" */ {}
             case 0xf242432a /* "safeTransferFrom(address,address,uint256,uint256,bytes)" */ {}
             case 0xa22cb465 /* "setApprovalForAll(address,bool)" */ {}
@@ -76,6 +82,39 @@ object "ERC1155Token" {
                 }
 
                 emitTransferBatch(caller(), 0, to, idsPtr, amountsPtr)
+            }
+            function burn(from, tokenId, amount) {
+                require(iszero(eq(from, 0)))
+
+                let fromBalance := balanceOf(from, tokenId)
+                require(gte(fromBalance, amount))
+
+                sstore(tokenIdToAccountToBalancePos(tokenId, from), sub(fromBalance, amount))
+
+                emitTransferSingle(caller(), from, 0, tokenId, amount)
+                
+            }
+            function batchBurn(from, idsPtr, amountsPtr) {
+                require(iszero(eq(from, 0)))
+
+                let idsLen := getDynamicTypeLen(idsPtr)
+                let amountsLen := getDynamicTypeLen(amountsPtr)
+                require(eq(idsLen, amountsLen))
+
+                let idItem := getDynamicTypeActualDataPtr(idsPtr)
+                let amountItem := getDynamicTypeActualDataPtr(amountsPtr)
+
+                for { let i := 0 } lt(i, idsLen) { i := add(i, 1) } {
+                    let tokenId := calldataload(add(idItem, mul(i, 0x20)))
+                    let amount := calldataload(add(amountItem, mul(i, 0x20)))
+
+                    let fromBalance := balanceOf(from, tokenId)
+                    require(gte(fromBalance, amount))
+
+                    sstore(tokenIdToAccountToBalancePos(tokenId, from), sub(fromBalance, amount))
+                }
+
+                emitTransferBatch(caller(), from, 0, idsPtr, amountsPtr)
             }
             function balanceOf(account, tokenId) -> v {
                 v := sload(tokenIdToAccountToBalancePos(tokenId, account))

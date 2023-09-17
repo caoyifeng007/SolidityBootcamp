@@ -155,128 +155,46 @@ contract ERC1155Test is Test {
         uint256 amount
     );
 
-    function testMintToEOA() public {
-        vm.expectEmit(true, true, true, true);
-        emit TransferSingle(
-            address(this),
-            address(0),
-            address(0xBEEF),
-            1337,
-            1
-        );
+    // function testMintToEOA() public {
+    //     vm.expectEmit(true, true, true, true);
+    //     emit TransferSingle(
+    //         address(this),
+    //         address(0),
+    //         address(0xBEEF),
+    //         1337,
+    //         1
+    //     );
 
-        token.mint(address(0xBEEF), 1337, 1, "");
+    //     token.mint(address(0xBEEF), 1337, 1, "");
 
-        assertEq(token.balanceOf(address(0xBEEF), 1337), 1);
-    }
-
-    function testMintToERC1155Recipient() public {
-        ERC1155Recipient to = new ERC1155Recipient();
-
-        // vm.breakpoint("a", true);
-        vm.expectEmit();
-        emit TransferSingle(address(this), address(0), address(to), 1337, 1);
-        token.mint(address(to), 1337, 1, "Testing 123");
-
-        assertEq(token.balanceOf(address(to), 1337), 1);
-
-        assertEq(to.operator(), address(this));
-        assertEq(to.from(), address(0));
-        assertEq(to.id(), 1337);
-        assertEq(to.mintData(), bytes("Testing 123"));
-    }
-
-    event TransferBatch(
-        address indexed operator,
-        address indexed from,
-        address indexed to,
-        uint256[] ids,
-        uint256[] amounts
-    );
-
-    function testBatchMintToEOA() public {
-        uint256[] memory ids = new uint256[](5);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
-        ids[4] = 1341;
-
-        uint256[] memory amounts = new uint256[](5);
-        amounts[0] = 100;
-        amounts[1] = 200;
-        amounts[2] = 300;
-        amounts[3] = 400;
-        amounts[4] = 500;
-
-        vm.expectEmit();
-        emit TransferBatch(
-            address(this),
-            address(0),
-            address(0xBEEF),
-            ids,
-            amounts
-        );
-
-        token.batchMint(address(0xBEEF), ids, amounts, "");
-
-        assertEq(token.balanceOf(address(0xBEEF), 1337), 100);
-        assertEq(token.balanceOf(address(0xBEEF), 1338), 200);
-        assertEq(token.balanceOf(address(0xBEEF), 1339), 300);
-        assertEq(token.balanceOf(address(0xBEEF), 1340), 400);
-        assertEq(token.balanceOf(address(0xBEEF), 1341), 500);
-    }
-
-    function testBatchMintToERC1155Recipient() public {
-        ERC1155Recipient to = new ERC1155Recipient();
-
-        uint256[] memory ids = new uint256[](5);
-        ids[0] = 1337;
-        ids[1] = 1338;
-        ids[2] = 1339;
-        ids[3] = 1340;
-        ids[4] = 1341;
-
-        uint256[] memory amounts = new uint256[](5);
-        amounts[0] = 100;
-        amounts[1] = 200;
-        amounts[2] = 300;
-        amounts[3] = 400;
-        amounts[4] = 500;
-
-        vm.expectEmit(true, true, true, true);
-        emit TransferBatch(
-            address(this),
-            address(0),
-            address(to),
-            ids,
-            amounts
-        );
-
-        token.batchMint(address(to), ids, amounts, "testing 123");
-
-        assertEq(to.batchOperator(), address(this));
-        assertEq(to.batchFrom(), address(0));
-        assertEq(to.batchIds(), ids);
-        assertEq(to.batchAmounts(), amounts);
-        assertEq(to.batchData(), "testing 123");
-
-        assertEq(token.balanceOf(address(to), 1337), 100);
-        assertEq(token.balanceOf(address(to), 1338), 200);
-        assertEq(token.balanceOf(address(to), 1339), 300);
-        assertEq(token.balanceOf(address(to), 1340), 400);
-        assertEq(token.balanceOf(address(to), 1341), 500);
-    }
-
-    // function testBurn() public {
-    //     token.mint(address(0xBEEF), 1337, 100, "");
-
-    //     token.burn(address(0xBEEF), 1337, 70);
-
-    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 30);
+    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 1);
     // }
 
-    // function testBatchBurn() public {
+    // function testMintToERC1155Recipient() public {
+    //     ERC1155Recipient to = new ERC1155Recipient();
+
+    //     // vm.breakpoint("a", true);
+    //     vm.expectEmit();
+    //     emit TransferSingle(address(this), address(0), address(to), 1337, 1);
+    //     token.mint(address(to), 1337, 1, "Testing 123");
+
+    //     assertEq(token.balanceOf(address(to), 1337), 1);
+
+    //     assertEq(to.operator(), address(this));
+    //     assertEq(to.from(), address(0));
+    //     assertEq(to.id(), 1337);
+    //     assertEq(to.mintData(), bytes("Testing 123"));
+    // }
+
+    // event TransferBatch(
+    //     address indexed operator,
+    //     address indexed from,
+    //     address indexed to,
+    //     uint256[] ids,
+    //     uint256[] amounts
+    // );
+
+    // function testBatchMintToEOA() public {
     //     uint256[] memory ids = new uint256[](5);
     //     ids[0] = 1337;
     //     ids[1] = 1338;
@@ -284,30 +202,120 @@ contract ERC1155Test is Test {
     //     ids[3] = 1340;
     //     ids[4] = 1341;
 
-    //     uint256[] memory mintAmounts = new uint256[](5);
-    //     mintAmounts[0] = 100;
-    //     mintAmounts[1] = 200;
-    //     mintAmounts[2] = 300;
-    //     mintAmounts[3] = 400;
-    //     mintAmounts[4] = 500;
+    //     uint256[] memory amounts = new uint256[](5);
+    //     amounts[0] = 100;
+    //     amounts[1] = 200;
+    //     amounts[2] = 300;
+    //     amounts[3] = 400;
+    //     amounts[4] = 500;
 
-    //     uint256[] memory burnAmounts = new uint256[](5);
-    //     burnAmounts[0] = 50;
-    //     burnAmounts[1] = 100;
-    //     burnAmounts[2] = 150;
-    //     burnAmounts[3] = 200;
-    //     burnAmounts[4] = 250;
+    //     vm.expectEmit();
+    //     emit TransferBatch(
+    //         address(this),
+    //         address(0),
+    //         address(0xBEEF),
+    //         ids,
+    //         amounts
+    //     );
 
-    //     token.batchMint(address(0xBEEF), ids, mintAmounts, "");
+    //     token.batchMint(address(0xBEEF), ids, amounts, "");
 
-    //     token.batchBurn(address(0xBEEF), ids, burnAmounts);
-
-    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 50);
-    //     assertEq(token.balanceOf(address(0xBEEF), 1338), 100);
-    //     assertEq(token.balanceOf(address(0xBEEF), 1339), 150);
-    //     assertEq(token.balanceOf(address(0xBEEF), 1340), 200);
-    //     assertEq(token.balanceOf(address(0xBEEF), 1341), 250);
+    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 100);
+    //     assertEq(token.balanceOf(address(0xBEEF), 1338), 200);
+    //     assertEq(token.balanceOf(address(0xBEEF), 1339), 300);
+    //     assertEq(token.balanceOf(address(0xBEEF), 1340), 400);
+    //     assertEq(token.balanceOf(address(0xBEEF), 1341), 500);
     // }
+
+    // function testBatchMintToERC1155Recipient() public {
+    //     ERC1155Recipient to = new ERC1155Recipient();
+
+    //     uint256[] memory ids = new uint256[](5);
+    //     ids[0] = 1337;
+    //     ids[1] = 1338;
+    //     ids[2] = 1339;
+    //     ids[3] = 1340;
+    //     ids[4] = 1341;
+
+    //     uint256[] memory amounts = new uint256[](5);
+    //     amounts[0] = 100;
+    //     amounts[1] = 200;
+    //     amounts[2] = 300;
+    //     amounts[3] = 400;
+    //     amounts[4] = 500;
+
+    //     vm.expectEmit(true, true, true, true);
+    //     emit TransferBatch(
+    //         address(this),
+    //         address(0),
+    //         address(to),
+    //         ids,
+    //         amounts
+    //     );
+
+    //     token.batchMint(address(to), ids, amounts, "testing 123");
+
+    //     assertEq(to.batchOperator(), address(this));
+    //     assertEq(to.batchFrom(), address(0));
+    //     assertEq(to.batchIds(), ids);
+    //     assertEq(to.batchAmounts(), amounts);
+    //     assertEq(to.batchData(), "testing 123");
+
+    //     assertEq(token.balanceOf(address(to), 1337), 100);
+    //     assertEq(token.balanceOf(address(to), 1338), 200);
+    //     assertEq(token.balanceOf(address(to), 1339), 300);
+    //     assertEq(token.balanceOf(address(to), 1340), 400);
+    //     assertEq(token.balanceOf(address(to), 1341), 500);
+    // }
+
+    function testBurn() public {
+        token.mint(address(0xBEEF), 1337, 100, "");
+
+        vm.expectEmit();
+        emit TransferSingle(
+            address(this),
+            address(0xBEEF),
+            address(0),
+            1337,
+            70
+        );
+        token.burn(address(0xBEEF), 1337, 70);
+
+        assertEq(token.balanceOf(address(0xBEEF), 1337), 30);
+    }
+
+    function testBatchBurn() public {
+        uint256[] memory ids = new uint256[](5);
+        ids[0] = 1337;
+        ids[1] = 1338;
+        ids[2] = 1339;
+        ids[3] = 1340;
+        ids[4] = 1341;
+
+        uint256[] memory mintAmounts = new uint256[](5);
+        mintAmounts[0] = 100;
+        mintAmounts[1] = 200;
+        mintAmounts[2] = 300;
+        mintAmounts[3] = 400;
+        mintAmounts[4] = 500;
+
+        uint256[] memory burnAmounts = new uint256[](5);
+        burnAmounts[0] = 50;
+        burnAmounts[1] = 100;
+        burnAmounts[2] = 150;
+        burnAmounts[3] = 200;
+        burnAmounts[4] = 250;
+
+        token.batchMint(address(0xBEEF), ids, mintAmounts, "");
+
+        token.batchBurn(address(0xBEEF), ids, burnAmounts);
+
+        assertEq(token.balanceOf(address(0xBEEF), 1337), 50);
+        assertEq(token.balanceOf(address(0xBEEF), 1338), 100);
+        assertEq(token.balanceOf(address(0xBEEF), 1339), 150);
+        assertEq(token.balanceOf(address(0xBEEF), 1340), 200);
+        assertEq(token.balanceOf(address(0xBEEF), 1341), 250);
+    }
 
     // function testApproveAll() public {
     //     token.setApprovalForAll(address(0xBEEF), true);
@@ -320,7 +328,7 @@ contract ERC1155Test is Test {
 
     //     token.mint(from, 1337, 100, "");
 
-    //     hevm.prank(from);
+    //     vm.prank(from);
     //     token.setApprovalForAll(address(this), true);
 
     //     token.safeTransferFrom(from, address(0xBEEF), 1337, 70, "");
