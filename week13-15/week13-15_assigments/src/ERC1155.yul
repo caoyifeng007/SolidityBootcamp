@@ -36,7 +36,9 @@ object "ERC1155Token" {
                 batchBurn(decodeAsAddress(0), decodeAsDynamicTypePtr(1), decodeAsDynamicTypePtr(2))
             }
             case 0x2eb2c2d6 /* "safeBatchTransferFrom(address,address,uint256[],uint256[],bytes)" */ {}
-            case 0xf242432a /* "safeTransferFrom(address,address,uint256,uint256,bytes)" */ {}
+            case 0xf242432a /* "safeTransferFrom(address,address,uint256,uint256,bytes)" */ {
+                safeTransferFrom(decodeAsAddress(0), decodeAsAddress(1), decodeAsUint(2), decodeAsUint(3),decodeAsDynamicTypePtr(4))
+            }
             case 0xa22cb465 /* "setApprovalForAll(address,bool)" */ {
                 setApprovalForAll(decodeAsAddress(0), decodeAsUint(1))
             }
@@ -58,7 +60,6 @@ object "ERC1155Token" {
                 if isContract(to) {
                     let success := doSafeTransferAcceptanceCheck(caller(), 0, to, tokenId, amount, dataPtr)
                     require(success)
-
                 }
 
                 emitTransferSingle(caller(), 0, to, tokenId, amount)
@@ -132,6 +133,25 @@ object "ERC1155Token" {
             }
             function isApprovedForAll(owner, spender) -> b {
                 b := sload(ownerToSpenderToApproved(owner, spender))
+            }
+            function safeTransferFrom(from, to, tokenId, amount, dataPtr) {
+                let operator := caller()
+                require(or(eq(from, operator), eq(isApprovedForAll(from, operator), 1)))
+
+                let fromBalance := balanceOf(from, tokenId)
+                require(gte(fromBalance, amount))
+
+                sstore(tokenIdToAccountToBalancePos(tokenId, from), sub(fromBalance, amount))
+
+                let toBalance := balanceOf(to, tokenId)
+                sstore(tokenIdToAccountToBalancePos(tokenId, to), add(toBalance, amount))
+
+                if isContract(to) {
+                    let success := doSafeTransferAcceptanceCheck(operator, from, to, tokenId, amount, dataPtr)
+                    require(success)
+                }
+
+                emitTransferSingle(operator, from, to, tokenId, amount)
             }
             function balanceOf(account, tokenId) -> v {
                 v := sload(tokenIdToAccountToBalancePos(tokenId, account))

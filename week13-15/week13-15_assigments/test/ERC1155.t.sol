@@ -317,25 +317,25 @@ contract ERC1155Test is Test {
     //     assertEq(token.balanceOf(address(0xBEEF), 1341), 250);
     // }
 
-    function testApproveAll() public {
-        token.setApprovalForAll(address(0xBEEF), true);
+    // function testApproveAll() public {
+    //     token.setApprovalForAll(address(0xBEEF), true);
 
-        assertTrue(token.isApprovedForAll(address(this), address(0xBEEF)));
-    }
-
-    // function testSafeTransferFromToEOA() public {
-    //     address from = address(0xABCD);
-
-    //     token.mint(from, 1337, 100, "");
-
-    //     vm.prank(from);
-    //     token.setApprovalForAll(address(this), true);
-
-    //     token.safeTransferFrom(from, address(0xBEEF), 1337, 70, "");
-
-    //     assertEq(token.balanceOf(address(0xBEEF), 1337), 70);
-    //     assertEq(token.balanceOf(from, 1337), 30);
+    //     assertTrue(token.isApprovedForAll(address(this), address(0xBEEF)));
     // }
+
+    function testSafeTransferFromToEOA() public {
+        address from = address(0xABCD);
+
+        token.mint(from, 1337, 100, "");
+
+        vm.prank(from);
+        token.setApprovalForAll(address(this), true);
+
+        token.safeTransferFrom(from, address(0xBEEF), 1337, 70, "");
+
+        assertEq(token.balanceOf(address(0xBEEF), 1337), 70);
+        assertEq(token.balanceOf(from, 1337), 30);
+    }
 
     // function testSafeTransferFromToERC1155Recipient() public {
     //     ERC1155Recipient to = new ERC1155Recipient();
