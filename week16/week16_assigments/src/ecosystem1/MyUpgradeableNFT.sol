@@ -57,8 +57,8 @@ contract MyUpgradeableNFT is Initializable, ERC721RoyaltyUpgradeable, Ownable2St
         require(!_isClaimed(ticketNum), "Ticket has been used.");
 
         // Verify the merkle proof.
-        bytes32 node = keccak256(abi.encodePacked(to, ticketNum, tokneId));
-        require(MerkleProofUpgradeable.verify(merkleProof, _merkleRoot, node), "Invalid proof");
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(to, ticketNum, tokneId))));
+        require(MerkleProofUpgradeable.verify(merkleProof, _merkleRoot, leaf), "Invalid proof");
 
         _currentSupply++;
         _setClaim(ticketNum);

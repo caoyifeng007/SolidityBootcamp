@@ -17,7 +17,10 @@ const config: HardhatUserConfig = {
         anvil: {
             url: "http://127.0.0.1:8545",
             // needs `dotenv` to use this syntax
-            accounts: [`${process.env.ANVIL_ACC1_PK}`],
+            accounts: [
+                `${process.env.ANVIL_ACC1_PK}`,
+                `${process.env.ANVIL_ACC2_PK}`,
+            ],
         },
         gorli: {
             url: `${process.env.ALCHEMY_GOERLI_KEY}`,

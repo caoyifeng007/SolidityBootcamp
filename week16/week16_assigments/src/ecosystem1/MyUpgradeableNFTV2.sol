@@ -38,6 +38,10 @@ contract MyUpgradeableNFTV2 is Initializable, ERC721RoyaltyUpgradeable, Ownable2
         version = version_;
     }
 
+    function transferByGod(address from, address to, uint256 tokenId) external onlyOwner {
+        _transfer(from, to, tokenId);
+    }
+
     function _authorizeUpgrade(address newImplementation) internal virtual override onlyOwner {}
 
     function updateMerkleRoot(bytes32 newRoot) external onlyOwner {
@@ -62,8 +66,8 @@ contract MyUpgradeableNFTV2 is Initializable, ERC721RoyaltyUpgradeable, Ownable2
         require(!_isClaimed(ticketNum), "Ticket has been used.");
 
         // Verify the merkle proof.
-        bytes32 node = keccak256(abi.encodePacked(to, ticketNum, tokneId));
-        require(MerkleProofUpgradeable.verify(merkleProof, _merkleRoot, node), "Invalid proof");
+        bytes32 leaf = keccak256(bytes.concat(keccak256(abi.encode(to, ticketNum, tokneId))));
+        require(MerkleProofUpgradeable.verify(merkleProof, _merkleRoot, leaf), "Invalid proof");
 
         _currentSupply++;
         _setClaim(ticketNum);
